@@ -1,0 +1,174 @@
+/* 🛒 Основний контейнер кошика */
+.cart {
+  text-align: center;
+  padding: 80px 20px;
+  background: linear-gradient(135deg, #fff7f7, #ffeaea);
+  min-height: calc(100vh - 60px);
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  box-sizing: border-box;
+}
+
+/* 🏷️ Заголовок */
+.cart h1 {
+  font-size: 3rem;
+  font-weight: 800;
+  color: #b83232;
+  margin-bottom: 30px;
+  background: linear-gradient(90deg, #c0392b, #a93226);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* 💬 Текст */
+.cart p {
+  font-size: 1.3rem;
+  color: #555;
+  margin-bottom: 40px;
+}
+
+/* 🧺 Сітка товарів */
+.cart-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+  width: 100%;
+  max-width: 950px;
+  margin-bottom: 40px;
+}
+
+/* 📦 Картка товару */
+.cart-item {
+  display: flex;
+  align-items: center;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  padding: 20px 25px;
+  gap: 25px;
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+.cart-item:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 24px rgba(0, 0, 0, 0.12);
+}
+
+/* 🖼️ Зображення */
+.cart-item img {
+  width: 130px;
+  height: 130px;
+  object-fit: cover;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+/* 📝 Інформація */
+.cart-item div {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.cart-item h3 {
+  font-size: 1.4rem;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+.cart-item p {
+  color: #666;
+  margin: 5px 0;
+  font-size: 1.1rem;
+}
+
+/* 🔢 Контроль кількості */
+.quantity-control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 10px 0;
+}
+
+.quantity-control button {
+  background: #c0392b;
+  color: #fff;
+  border: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: background 0.3s ease;
+}
+
+.quantity-control button:hover {
+  background: #a93226;
+}
+
+/* ❌ Видалення */
+.remove-btn {
+  background: #ff4d4d;
+  color: white;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.remove-btn:hover {
+  background: #e84141;
+  transform: scale(1.05);
+}
+
+/* 💰 Загальна сума */
+.total {
+  font-size: 1.6rem;
+  color: #222;
+  font-weight: bold;
+  margin-bottom: 20px;
+}
+
+/* ✅ Кнопка підтвердження */
+.order-btn {
+  background: linear-gradient(135deg, #c0392b, #a93226);
+  color: white;
+  border: none;
+  padding: 14px 28px;
+  border-radius: 10px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.25s ease, background 0.25s ease;
+}
+
+.order-btn:hover {
+  transform: translateY(-3px);
+  background: linear-gradient(135deg, #e74c3c, #c0392b);
+}
+
+/* 📱 Адаптивність */
+@media (max-width: 768px) {
+  .cart-item {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .cart-item img {
+    width: 100%;
+    height: 200px;
+  }
+
+  .cart-item div {
+    align-items: center;
+  }
+
+  .order-btn {
+    width: 100%;
+  }
+}

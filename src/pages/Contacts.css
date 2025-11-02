@@ -1,0 +1,24 @@
+.contacts {
+  text-align: center;
+  padding: 50px 20px;
+  background: linear-gradient(135deg, #f9e6ff, #f2ccff);
+  min-height: calc(100vh - 60px);
+  width: 100vw;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  margin: 0;
+  box-sizing: border-box;
+}
+
+.contacts h1 {
+  font-size: 2.5rem;
+  color: #6a1b9a;
+  margin-bottom: 20px;
+}
+
+.contacts p {
+  font-size: 1.2rem;
+  color: #333;
+}
