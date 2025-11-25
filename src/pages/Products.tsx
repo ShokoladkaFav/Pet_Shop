@@ -37,9 +37,32 @@ const Products: React.FC = () => {
       });
   }, []);
 
-  // 🛒 Функція додавання до кошика
   const addToCart = (product: Product) => {
-    const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    // Визначаємо ключ кошика (перевіряємо sessionStorage)
+    const userStr = sessionStorage.getItem("user");
+    let cartKey = "";
+
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) cartKey = `cart_${uid}`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    // Якщо користувача немає, використовуємо Guest Session ID
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
+
+    const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
     const existingItem = currentCart.find(
       (item: any) => item.product_id === product.product_id
     );
@@ -50,17 +73,15 @@ const Products: React.FC = () => {
       currentCart.push({ ...product, quantity: 1 });
     }
 
-    localStorage.setItem("cart", JSON.stringify(currentCart));
-    window.dispatchEvent(new Event("storage")); // 🔄 Оновлює Navbar
+    localStorage.setItem(cartKey, JSON.stringify(currentCart));
+    window.dispatchEvent(new Event("storage"));
 
-    // 📢 Показуємо повідомлення (toast)
     const newToast: ToastMessage = {
       id: Date.now(),
       text: `✅ ${product.name} додано у кошик!`,
     };
     setToasts((prev) => [...prev, newToast]);
 
-    // ⏳ Автоматичне зникнення через 5 секунд
     setTimeout(() => removeToast(newToast.id), 5000);
   };
 
@@ -86,7 +107,6 @@ const Products: React.FC = () => {
 
   return (
     <div className="products-container">
-      {/* 🔔 Вікна повідомлень */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className="toast">

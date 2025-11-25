@@ -1,12 +1,13 @@
+
 /* === ГОЛОВНИЙ КОНТЕЙНЕР === */
 .navbar {
   display: flex;
   justify-content: space-between;
   align-items: center;
   background-color: #2e7d32;
-  padding: 15px 30px;              /* 🔹 Збільшені відступи */
+  padding: 15px 30px;
   border-radius: 8px;
-  position: sticky;                /* 🔹 Закріплення зверху */
+  position: sticky;
   top: 0;
   z-index: 1000;
   box-shadow: 0 2px 10px rgba(0, 0, 0, 0.2);
@@ -16,7 +17,7 @@
 .logo {
   color: white;
   margin: 0;
-  font-size: 2.4rem;               /* 🔹 Збільшено розмір логотипу */
+  font-size: 2.4rem;
   font-weight: 800;
   letter-spacing: 1px;
   text-decoration: none;
@@ -25,7 +26,7 @@
 }
 
 .logo:hover {
-  color: #ffcc80;                  /* 🔸 Теплий акцент при наведенні */
+  color: #ffcc80;
   transform: scale(1.05);
 }
 
@@ -33,7 +34,7 @@
 .nav-links {
   list-style: none;
   display: flex;
-  gap: 25px;                       /* 🔹 Більший відступ між елементами */
+  gap: 25px;
   margin: 0;
   padding: 0;
 }
@@ -42,24 +43,120 @@
   color: white;
   text-decoration: none;
   font-weight: 600;
-  font-size: 1.2rem;               /* 🔹 Збільшено розмір кнопок */
+  font-size: 1.2rem;
   font-family: "Poppins", sans-serif;
   transition: color 0.3s ease, transform 0.2s ease;
 }
 
 .nav-links li a:hover {
   color: #c8e6c9;
-  transform: scale(1.08);          /* 🔹 Легкий zoom при наведенні */
+  transform: scale(1.08);
 }
 
 /* === КОШИК === */
 .cart-link {
-  color: #ffcc80 !important;       /* 🔸 Виділяємо кошик іншим кольором */
+  color: #ffcc80 !important;
   font-weight: 700;
 }
 
 .cart-link:hover {
   color: #fff176 !important;
+}
+
+/* === КНОПКИ "УВІЙТИ" / "РЕЄСТРАЦІЯ" === */
+.login-btn,
+.register-btn {
+  background: transparent;
+  border: 2px solid #c8e6c9;
+  color: #ffffff;
+  font-family: "Poppins", sans-serif;
+  font-weight: 600;
+  font-size: 1rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* === Ефекти при наведенні === */
+.login-btn:hover,
+.register-btn:hover {
+  background-color: #388e3c;
+  border-color: #a5d6a7;
+  transform: scale(1.03);
+}
+
+/* === Індивідуальний стиль для "Реєстрації" === */
+.register-btn {
+  border-color: #a5d6a7;
+  color: #e8f5e9;
+}
+
+.register-btn:hover {
+  background-color: #a5d6a7;
+  color: #2e7d32;
+}
+
+/* === КНОПКА АДМІН ПАНЕЛЬ (DEV) === */
+.admin-btn {
+  background-color: #263238; /* Темний колір */
+  border: 2px solid #455a64;
+  color: #ffeb3b; /* Жовтий текст для уваги */
+  font-family: "Poppins", sans-serif;
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 6px 14px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  margin-right: 10px;
+}
+
+.admin-btn:hover {
+  background-color: #000;
+  border-color: #ffeb3b;
+  transform: scale(1.05);
+}
+
+
+/* === МЕНЮ КОРИСТУВАЧА (АВТОРИЗОВАНИЙ) === */
+.user-menu {
+  display: flex;
+  align-items: center;
+  gap: 20px;
+}
+
+.username {
+  color: white;
+  font-size: 1.6rem; /* Збільшено розмір шрифту */
+  font-weight: 700;
+  text-decoration: none;
+  transition: color 0.3s ease, transform 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.username:hover {
+  color: #ffcc80;
+  transform: scale(1.05);
+}
+
+/* Кнопка виходу в навбарі */
+.navbar .logout-btn {
+  background-color: #d32f2f; /* Червоний */
+  color: white;
+  border: none;
+  padding: 8px 18px;
+  border-radius: 6px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.3s ease, transform 0.2s ease;
+}
+
+.navbar .logout-btn:hover {
+  background-color: #b71c1c;
+  transform: scale(1.05);
 }
 
 /* === МОБІЛЬНА ВЕРСІЯ === */
@@ -85,5 +182,24 @@
     font-size: 1.1rem;
     width: 100%;
     display: block;
+  }
+
+  .auth-buttons, .user-menu {
+    width: 100%;
+    margin-top: 15px;
+    justify-content: space-between;
+    flex-wrap: wrap; /* Дозволяємо перенос для кнопок */
+    gap: 10px;
+  }
+
+  .login-btn,
+  .register-btn {
+    width: 48%;
+    text-align: center;
+  }
+  
+  .admin-btn {
+    width: 100%; /* На мобільному на всю ширину */
+    margin-right: 0;
   }
 }

@@ -1,7 +1,9 @@
 import React, { useEffect, useState } from "react";
 import "./Cart.css";
+import { useNavigate } from "react-router-dom";
 
 interface CartItem {
+  product_id: number;
   name: string;
   price: number;
   quantity: number;
@@ -10,52 +12,73 @@ interface CartItem {
 
 const Cart: React.FC = () => {
   const [cart, setCart] = useState<CartItem[]>([]);
+  const [showModal, setShowModal] = useState(false);
+  const [cartKey, setCartKey] = useState("cart");
+  const navigate = useNavigate();
 
-  // 🔄 Завантаження кошика з localStorage
   useEffect(() => {
-    const savedCart = localStorage.getItem("cart");
-    if (savedCart) {
-      setCart(JSON.parse(savedCart));
+    // 1. Визначаємо ключ кошика (користувач з sessionStorage або гість)
+    const userStr = sessionStorage.getItem("user");
+    let key = "";
+
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) key = `cart_${uid}`;
+      } catch (e) {
+        console.error("Error parsing user for cart key", e);
+      }
     }
+
+    // Якщо користувача немає, використовуємо гостьову сесію
+    if (!key) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      key = `cart_${guestId}`;
+    }
+
+    setCartKey(key);
+
+    // 2. Завантажуємо кошик по цьому ключу (Кошик зберігається в localStorage для надійності)
+    const savedCart = localStorage.getItem(key);
+    if (savedCart) setCart(JSON.parse(savedCart));
   }, []);
 
-  // 💾 Оновлення локального сховища + синхронізація Navbar
   const saveCart = (updatedCart: CartItem[]) => {
     setCart(updatedCart);
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    window.dispatchEvent(new Event("storage")); // 🔁 повідомляє Navbar
+    localStorage.setItem(cartKey, JSON.stringify(updatedCart));
+    // Відправляємо подію, щоб оновити Navbar
+    window.dispatchEvent(new Event("storage"));
   };
 
-  // ➕➖ Зміна кількості (з авто-видаленням при 0)
-  const updateQuantity = (name: string, change: number) => {
-    const updatedCart = cart
-      .map((item) => {
-        if (item.name === name) {
-          const newQty = item.quantity + change;
-          if (newQty <= 0) return null; // 🧹 якщо кількість 0 — видаляємо
-          return { ...item, quantity: newQty };
-        }
-        return item;
-      })
-      .filter((item): item is CartItem => item !== null);
-
+  const handleQuantityChange = (id: number, value: number) => {
+    if (value < 1 || value > 100) return;
+    const updatedCart = cart.map((item) =>
+      item.product_id === id ? { ...item, quantity: value } : item
+    );
     saveCart(updatedCart);
   };
 
-  // ❌ Повне видалення товару
-  const removeItem = (name: string) => {
-    const updatedCart = cart.filter((item) => item.name !== name);
-    saveCart(updatedCart);
+  const removeItem = (id: number) => {
+    saveCart(cart.filter((item) => item.product_id !== id));
   };
 
-  // 💰 Загальна сума
   const total = cart.reduce((sum, item) => sum + item.price * item.quantity, 0);
 
-  // 🧾 Обробка замовлення
   const handleOrder = () => {
     if (cart.length === 0) {
       alert("Ваш кошик порожній 😿");
       return;
+    }
+
+    const isValid = cart.every(item => item.product_id !== undefined);
+    if (!isValid) {
+        alert("Помилка даних кошика. Спробуйте очистити кошик і додати товари знову.");
+        return;
     }
 
     fetch("http://localhost/zoo-api/placeOrder.php", {
@@ -65,15 +88,24 @@ const Cart: React.FC = () => {
     })
       .then((res) => res.json())
       .then((data) => {
-        alert(data.message || "✅ Замовлення оформлено успішно!");
-        localStorage.removeItem("cart");
-        setCart([]);
-        window.dispatchEvent(new Event("storage")); // 🧹 очищає лічильник у Navbar
+        if (data.status === 'error') {
+            alert("Помилка сервера: " + data.message);
+        } else {
+            setShowModal(true);
+            localStorage.removeItem(cartKey); // Очищаємо правильний кошик
+            setCart([]);
+            window.dispatchEvent(new Event("storage"));
+        }
       })
       .catch((err) => {
         console.error("❌ Помилка оформлення замовлення:", err);
         alert("Не вдалося оформити замовлення. Спробуйте пізніше.");
       });
+  };
+
+  const closeModal = () => {
+    setShowModal(false);
+    navigate("/");
   };
 
   return (
@@ -99,19 +131,25 @@ const Cart: React.FC = () => {
                   <h3>{item.name}</h3>
                   <p>{item.price} грн</p>
 
-                  <div className="quantity-control">
-                    <button onClick={() => updateQuantity(item.name, -1)}>
-                      -
-                    </button>
-                    <span>{item.quantity}</span>
-                    <button onClick={() => updateQuantity(item.name, 1)}>
-                      +
-                    </button>
+                  <div className="quantity-input">
+                    <label>Кількість:</label>
+                    <input
+                      type="number"
+                      min={1}
+                      max={100}
+                      value={item.quantity}
+                      onChange={(e) =>
+                        handleQuantityChange(
+                          item.product_id,
+                          Number(e.target.value)
+                        )
+                      }
+                    />
                   </div>
 
                   <button
                     className="remove-btn"
-                    onClick={() => removeItem(item.name)}
+                    onClick={() => removeItem(item.product_id)}
                   >
                     ❌ Видалити
                   </button>
@@ -120,12 +158,27 @@ const Cart: React.FC = () => {
             ))}
           </div>
 
-          <h2 className="total">💰 Загальна сума: {total} грн</h2>
+          <h2 className="total">💰 Загальна сума: {total.toFixed(2)} грн</h2>
 
           <button className="order-btn" onClick={handleOrder}>
             ✅ Підтвердити замовлення
           </button>
         </>
+      )}
+
+      {showModal && (
+        <div className="modal-overlay">
+          <div className="modal">
+            <h2>✅ Замовлення прийнято!</h2>
+            <p>
+              Ваше замовлення на обробці. Найближчим часом з вами зв’яжеться наш
+              менеджер 💬
+            </p>
+            <button onClick={closeModal} className="close-modal-btn">
+              Повернутись на головну
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

@@ -1,0 +1,241 @@
+
+.account-wrapper {
+  display: flex;
+  justify-content: center;
+  padding: 20px; 
+  min-height: calc(100vh - 60px);
+  background-color: #f4f7f6;
+  font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+  box-sizing: border-box;
+  width: 100%; /* Гарантує, що фон заповнює всю ширину */
+}
+
+/* Головний контейнер сітки - НА ВЕСЬ ЕКРАН */
+.account-container {
+  display: grid;
+  grid-template-columns: 320px 1fr; /* Сайдбар фіксований, контент займає ВСЮ решту місця */
+  gap: 30px;
+  width: 100%;
+  max-width: 100%; /* Жодних обмежень по ширині */
+}
+
+/* === ЛІВА КОЛОНКА (Сайдбар) === */
+.account-sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  height: fit-content;
+}
+
+.info-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 40px 20px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.avatar-placeholder {
+  width: 100px;
+  height: 100px;
+  background: linear-gradient(135deg, #00bcd4, #0097a7);
+  color: white;
+  font-size: 3rem;
+  font-weight: bold;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 20px;
+  box-shadow: 0 4px 10px rgba(0, 188, 212, 0.3);
+}
+
+.info-card h2 {
+  margin: 0 0 5px 0;
+  color: #333;
+  font-size: 1.8rem; /* Збільшено ім'я в сайдбарі теж */
+  font-weight: 700;
+}
+
+.email-text {
+  color: #777;
+  margin-bottom: 30px;
+  font-size: 1rem;
+  word-break: break-all;
+}
+
+/* Кнопка виходу в сайдбарі - ЧЕРВОНА */
+.account-sidebar .logout-btn {
+  width: 100%;
+  padding: 12px;
+  background-color: #e74c3c; /* Яскравий червоний */
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(231, 76, 60, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.account-sidebar .logout-btn:hover {
+  background-color: #c0392b;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(192, 57, 43, 0.4);
+}
+
+/* === ПРАВА КОЛОНКА (Основна) === */
+.account-main {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  width: 100%; /* Розтягується на всю доступну ширину */
+}
+
+.header-section h2 {
+  font-size: 2rem;
+  color: #2c3e50;
+  margin: 0 0 10px 0;
+}
+
+.header-section p {
+  color: #666;
+  font-size: 1.1rem;
+  margin: 0;
+}
+
+.form-card {
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 4px 20px rgba(0,0,0,0.05);
+  padding: 40px;
+  flex-grow: 1;
+}
+
+/* Форма */
+.form-row {
+  display: grid;
+  /* Адаптивна сітка: якщо екран широкий, колонки тягнуться */
+  grid-template-columns: 1fr 1fr; 
+  gap: 30px;
+}
+
+.form-group {
+  margin-bottom: 5px;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 10px;
+  color: #37474f;
+  font-weight: 600;
+  font-size: 1.05rem;
+}
+
+.form-group input {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid #e0e0e0;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  transition: all 0.3s;
+  box-sizing: border-box;
+  background-color: #fafafa;
+}
+
+.form-group input:focus {
+  border-color: #00bcd4;
+  background-color: #fff;
+  outline: none;
+  box-shadow: 0 0 0 4px rgba(0, 188, 212, 0.1);
+}
+
+/* Кнопки */
+.form-actions {
+  margin-top: 40px;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.save-btn {
+  padding: 15px 50px;
+  background-color: #00bcd4;
+  color: white;
+  border: none;
+  border-radius: 10px;
+  font-size: 1.1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 12px rgba(0, 188, 212, 0.3);
+}
+
+.save-btn:hover {
+  background-color: #00acc1;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 15px rgba(0, 188, 212, 0.4);
+}
+
+.save-btn:disabled {
+  background-color: #b2ebf2;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Повідомлення */
+.status-message {
+  margin-top: 20px;
+  text-align: center;
+  padding: 15px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+}
+
+.status-message.success {
+  background-color: #e8f5e9;
+  color: #2e7d32;
+  border: 1px solid #c8e6c9;
+}
+
+.status-message.error {
+  background-color: #ffebee;
+  color: #c62828;
+  border: 1px solid #ffcdd2;
+}
+
+.loading {
+  text-align: center;
+  margin-top: 100px;
+  font-size: 1.5rem;
+  color: #666;
+}
+
+/* Адаптивність */
+@media (max-width: 1024px) {
+  .form-row {
+    grid-template-columns: 1fr; /* На менших екранах (ноутбуки) - в один стовпчик */
+  }
+}
+
+@media (max-width: 768px) {
+  .account-container {
+    grid-template-columns: 1fr; /* Одна колонка для всього на телефонах/планшетах */
+  }
+  
+  .save-btn {
+    width: 100%;
+  }
+  
+  .account-wrapper {
+    padding: 10px;
+  }
+}

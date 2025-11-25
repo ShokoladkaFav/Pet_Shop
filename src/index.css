@@ -24,10 +24,15 @@ a:hover {
 
 body {
   margin: 0;
-  display: flex;
-  place-items: center;
+  /* display: flex;  <-- ПРИБРАНО: це заважало розтягуванню на всю ширину */
+  /* place-items: center; <-- ПРИБРАНО */
   min-width: 320px;
   min-height: 100vh;
+  display: block; /* Повертаємо стандартну блочну поведінку */
+}
+
+#root {
+  width: 100%; /* Гарантуємо, що кореневий елемент займає весь екран */
 }
 
 h1 {

@@ -92,7 +92,7 @@
   font-size: 0.9rem;
   color: #666;
   line-height: 1.2;
-  margin-bottom: 0 !important; /* 🔹 повністю прибрали відстань */
+  margin-bottom: 0 !important;
   text-align: center;
   padding: 0 8px;
   flex-grow: 1;
@@ -107,7 +107,7 @@
   color: #0086c7;
   font-weight: 600;
   margin-top: 0 !important;
-  margin-bottom: 4px !important; /* 🔹 тільки легка відстань перед кнопкою */
+  margin-bottom: 4px !important;
   padding: 0;
 }
 
@@ -124,7 +124,7 @@
   text-decoration: none;
   transition: background 0.25s ease, transform 0.2s ease;
   cursor: pointer;
-  margin-top: auto; /* 📍 завжди притиснута донизу */
+  margin-top: auto;
 }
 
 .btn:hover {
@@ -142,6 +142,48 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+
+/* 🔔 Toast-повідомлення (зверху зліва) */
+.toast {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  background: linear-gradient(135deg, #0077b6, #00a8e8);
+  color: #fff;
+  padding: 14px 18px;
+  border-radius: 10px;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  font-size: 1rem;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  z-index: 9999;
+  opacity: 0;
+  transform: translateY(-40px);
+  transition: all 0.4s ease;
+  animation: fadeIn 0.5s ease forwards;
+}
+
+.toast.show {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* ❌ Кнопка закриття */
+.closeBtn {
+  background: transparent;
+  border: none;
+  color: #fff;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.closeBtn:hover {
+  transform: scale(1.1);
+  opacity: 0.8;
 }
 
 /* 📱 Адаптивність */
@@ -173,6 +215,13 @@
   .btn {
     font-size: 0.9rem;
   }
+
+  .toast {
+    top: 15px;
+    left: 15px;
+    font-size: 0.9rem;
+    padding: 12px 14px;
+  }
 }
 
 @media (max-width: 480px) {
@@ -194,5 +243,12 @@
 
   .desc {
     min-height: 50px;
+  }
+
+  .toast {
+    top: 10px;
+    left: 10px;
+    font-size: 0.85rem;
+    padding: 10px 12px;
   }
 }

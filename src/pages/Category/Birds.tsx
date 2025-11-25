@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./Birds.module.css";
 
 interface Product {
+  product_id: number;
   name: string;
   price: number;
   description: string;
@@ -12,14 +13,13 @@ const Birds: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastMessage, setToastMessage] = useState("");
 
-  // 🐤 Отримуємо товари з бази даних
   useEffect(() => {
     fetch("http://localhost/zoo-api/Birds.php")
       .then((response) => {
-        if (!response.ok) {
-          throw new Error("Помилка завантаження даних із сервера");
-        }
+        if (!response.ok) throw new Error("Помилка завантаження даних із сервера");
         return response.json();
       })
       .then((data) => {
@@ -33,14 +33,30 @@ const Birds: React.FC = () => {
       });
   }, []);
 
-  // 🛒 Функція додавання товару в кошик
   const addToCart = (product: Product) => {
-    const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const userStr = sessionStorage.getItem("user");
+    let cartKey = "";
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) cartKey = `cart_${uid}`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
-    // Перевіряємо чи товар уже є
-    const existingIndex = currentCart.findIndex(
-      (item: any) => item.name === product.name
-    );
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
+
+    const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
+    const existingIndex = currentCart.findIndex((item: any) => item.product_id === product.product_id);
 
     if (existingIndex !== -1) {
       currentCart[existingIndex].quantity += 1;
@@ -48,12 +64,17 @@ const Birds: React.FC = () => {
       currentCart.push({ ...product, quantity: 1 });
     }
 
-    localStorage.setItem("cart", JSON.stringify(currentCart));
-    window.dispatchEvent(new Event("storage")); // 🔄 оновлення Navbar
-    alert(`✅ ${product.name} додано у кошик!`);
+    localStorage.setItem(cartKey, JSON.stringify(currentCart));
+    window.dispatchEvent(new Event("storage"));
+
+    setToastMessage(`✅ ${product.name} додано у кошик!`);
+    setShowToast(true);
+
+    setTimeout(() => {
+      setShowToast(false);
+    }, 5000);
   };
 
-  // 🌀 Завантаження
   if (loading)
     return (
       <div className={styles.birds}>
@@ -62,7 +83,6 @@ const Birds: React.FC = () => {
       </div>
     );
 
-  // ❌ Помилка
   if (error)
     return (
       <div className={styles.birds}>
@@ -71,7 +91,6 @@ const Birds: React.FC = () => {
       </div>
     );
 
-  // 🐦 Відображення
   return (
     <div className={styles.birds}>
       <h1>Пташки 🐦</h1>
@@ -79,8 +98,8 @@ const Birds: React.FC = () => {
 
       <div className={styles.birdsGrid}>
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <div key={index} className={styles.birdCard}>
+          products.map((product) => (
+            <div key={product.product_id} className={styles.birdCard}>
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""
@@ -92,10 +111,7 @@ const Birds: React.FC = () => {
               <h3>{product.name}</h3>
               <p className={styles.desc}>{product.description}</p>
               <p className={styles.price}>{product.price} грн</p>
-              <button
-                className={styles.btn}
-                onClick={() => addToCart(product)}
-              >
+              <button className={styles.btn} onClick={() => addToCart(product)}>
                 🛒 В кошик
               </button>
             </div>
@@ -104,6 +120,15 @@ const Birds: React.FC = () => {
           <p>Немає товарів у цій категорії 🐾</p>
         )}
       </div>
+
+      {showToast && (
+        <div className={`${styles.toast} ${styles.show}`}>
+          <span>{toastMessage}</span>
+          <button className={styles.closeBtn} onClick={() => setShowToast(false)}>
+            ✖
+          </button>
+        </div>
+      )}
     </div>
   );
 };

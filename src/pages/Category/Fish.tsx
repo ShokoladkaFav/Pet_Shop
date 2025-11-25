@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import styles from "./Fish.module.css";
 
 interface Product {
+  product_id: number;
   name: string;
   price: number;
   description: string;
@@ -12,8 +13,9 @@ const Fish: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showToast, setShowToast] = useState(false);
+  const [toastKey, setToastKey] = useState(0);
 
-  // 🐟 Отримуємо товари з бази
   useEffect(() => {
     fetch("http://localhost/zoo-api/Fish.php")
       .then((response) => {
@@ -33,12 +35,31 @@ const Fish: React.FC = () => {
       });
   }, []);
 
-  // 🛒 Функція додавання товару в кошик
   const addToCart = (product: Product) => {
-    const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
+    const userStr = sessionStorage.getItem("user");
+    let cartKey = "";
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) cartKey = `cart_${uid}`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
 
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
+
+    const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
     const existingIndex = currentCart.findIndex(
-      (item: any) => item.name === product.name
+      (item: any) => item.product_id === product.product_id
     );
 
     if (existingIndex !== -1) {
@@ -47,12 +68,15 @@ const Fish: React.FC = () => {
       currentCart.push({ ...product, quantity: 1 });
     }
 
-    localStorage.setItem("cart", JSON.stringify(currentCart));
+    localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
-    alert(`✅ ${product.name} додано у кошик!`);
+
+    setToastKey((prev) => prev + 1);
+    setShowToast(true);
+
+    setTimeout(() => setShowToast(false), 2000);
   };
 
-  // 🌀 Завантаження
   if (loading)
     return (
       <div className={styles.fish}>
@@ -61,7 +85,6 @@ const Fish: React.FC = () => {
       </div>
     );
 
-  // ❌ Помилка
   if (error)
     return (
       <div className={styles.fish}>
@@ -70,9 +93,14 @@ const Fish: React.FC = () => {
       </div>
     );
 
-  // 🐠 Відображення товарів
   return (
     <div className={styles.fish}>
+      {showToast && (
+        <div key={toastKey} className={styles.toast}>
+          ✅ Товар додано в кошик!
+        </div>
+      )}
+
       <h1>Рибки 🐠</h1>
       <p>Все для догляду за вашими акваріумними улюбленцями!</p>
 

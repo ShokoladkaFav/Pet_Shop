@@ -1,0 +1,109 @@
+/* 🟩 Повноекранний фон */
+.auth-page {
+  width: 100vw;
+  height: calc(100vh - 60px);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background: linear-gradient(135deg, #c8e6c9, #a5d6a7);
+  animation: fadeIn 0.6s ease-in-out;
+  box-sizing: border-box;
+}
+
+/* 🟩 Контейнер форми */
+.auth-container {
+  width: 100%;
+  max-width: 420px;
+  padding: 40px 30px;
+  background: #e8f5e9;
+  border-radius: 15px;
+  box-shadow: 0 6px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  box-sizing: border-box;
+}
+
+/* 🟩 Заголовок */
+.auth-container h2 {
+  color: #2e7d32;
+  font-family: "Poppins", sans-serif;
+  margin-bottom: 25px;
+  font-size: 1.9rem;
+}
+
+/* 🟩 Форма */
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* 🟩 Поля вводу */
+.auth-form input {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #a5d6a7;
+  border-radius: 8px;
+  font-size: 1rem;
+  font-family: "Poppins", sans-serif;
+  transition: all 0.3s ease;
+  box-sizing: border-box;
+  background-color: #ffffff;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #2e7d32;
+  box-shadow: 0 0 8px rgba(46, 125, 50, 0.4);
+}
+
+/* 🟩 Кнопка */
+.auth-btn {
+  background: linear-gradient(90deg, #00796b, #0288d1);
+  color: white;
+  font-weight: 600;
+  border: none;
+  border-radius: 8px;
+  padding: 12px;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.auth-btn:hover {
+  background: linear-gradient(90deg, #009688, #039be5);
+  transform: scale(1.02);
+}
+
+/* 🟩 Текст і посилання */
+.auth-text {
+  margin-top: 18px;
+  font-size: 0.95rem;
+  color: #33691e;
+}
+
+.auth-link {
+  color: #1b5e20;
+  font-weight: 600;
+  text-decoration: none;
+  transition: color 0.3s ease;
+}
+
+.auth-link:hover {
+  color: #388e3c;
+}
+
+/* 🟩 Анімація */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(25px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

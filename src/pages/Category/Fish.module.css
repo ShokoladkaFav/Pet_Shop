@@ -134,6 +134,41 @@
   }
 }
 
+/* 🧾 Повідомлення про додавання у кошик */
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 20px; /* 📍 зліва зверху */
+  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  color: white;
+  padding: 12px 18px;
+  border-radius: 10px;
+  font-size: 1rem;
+  font-weight: 500;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+  z-index: 9999;
+  animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.1s forwards;
+}
+
+/* 🔄 Анімації появи та зникнення */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes fadeOut {
+  to {
+    opacity: 0;
+    transform: translateX(-40px);
+  }
+}
+
 /* 📱 Адаптивність */
 @media (max-width: 768px) {
   .fish h1 {

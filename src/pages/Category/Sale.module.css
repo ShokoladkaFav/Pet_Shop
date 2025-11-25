@@ -1,3 +1,4 @@
+
 /* 🎉 Повноекранний контейнер */
 .sale {
   width: 100vw;
@@ -165,6 +166,55 @@
   box-shadow: 0 3px 8px rgba(255, 80, 0, 0.3);
 }
 
+/* 🔔 Toast Notifications (Спливаючі повідомлення) */
+.toastContainer {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+}
+
+/* Змінено на зелений колір, як у категоріях "Собаки" та загальному каталозі */
+.toast {
+  background: linear-gradient(135deg, #3fa34d, #2b7a0b);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 12px;
+  box-shadow: 0 5px 15px rgba(47, 128, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 280px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  animation: slideInLeft 0.4s ease forwards;
+}
+
+.toast span {
+  flex-grow: 1;
+  margin-right: 10px;
+  text-align: left;
+}
+
+.closeBtn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+  opacity: 0.8;
+}
+
+.closeBtn:hover {
+  transform: scale(1.2);
+  opacity: 1;
+}
+
 /* 🌈 Анімація */
 @keyframes fadeIn {
   from {
@@ -174,6 +224,17 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-100%);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }
 
@@ -198,6 +259,11 @@
   .discountedPrice {
     font-size: 1.3rem;
   }
+  
+  .toast {
+    min-width: 220px;
+    font-size: 0.9rem;
+  }
 }
 
 @media (max-width: 480px) {
@@ -211,5 +277,10 @@
 
   .saleCard img {
     height: 150px;
+  }
+  
+  .toastContainer {
+    left: 10px;
+    top: 15px;
   }
 }

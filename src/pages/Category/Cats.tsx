@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import "./Cats.css";
 
 interface Product {
+  product_id: number;
   name: string;
   price: number;
   description: string;
@@ -36,10 +37,30 @@ const Cats: React.FC = () => {
       });
   }, []);
 
-  // 🛒 Додати товар у кошик
   const addToCart = (product: Product) => {
-    const currentCart = JSON.parse(localStorage.getItem("cart") || "[]");
-    const existing = currentCart.find((item: any) => item.name === product.name);
+    const userStr = sessionStorage.getItem("user");
+    let cartKey = "";
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) cartKey = `cart_${uid}`;
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
+
+    const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
+    const existing = currentCart.find((item: any) => item.product_id === product.product_id);
 
     if (existing) {
       existing.quantity += 1;
@@ -47,10 +68,9 @@ const Cats: React.FC = () => {
       currentCart.push({ ...product, quantity: 1 });
     }
 
-    localStorage.setItem("cart", JSON.stringify(currentCart));
-    window.dispatchEvent(new Event("storage")); // 🔄 щоб Navbar оновився
+    localStorage.setItem(cartKey, JSON.stringify(currentCart));
+    window.dispatchEvent(new Event("storage"));
 
-    // 📢 Показати toast
     const newToast: ToastMessage = {
       id: Date.now(),
       text: `✅ ${product.name} додано у кошик!`,
@@ -83,7 +103,6 @@ const Cats: React.FC = () => {
 
   return (
     <div className="cats">
-      {/* 🔔 Контейнер toast-повідомлень */}
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className="toast">
@@ -100,8 +119,8 @@ const Cats: React.FC = () => {
 
       <div className="cats-grid">
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <div key={index} className="cat-card">
+          products.map((product) => (
+            <div key={product.product_id} className="cat-card">
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""

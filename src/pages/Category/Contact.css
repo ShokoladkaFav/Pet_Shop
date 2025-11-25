@@ -1,0 +1,270 @@
+/* 🩺 Основний контейнер */
+.contact {
+  width: 100vw;
+  min-height: calc(100vh - 60px);
+  padding: 100px 20px 100px;
+  background: linear-gradient(135deg, #e6f7f8, #eaf4ff);
+  box-sizing: border-box;
+  animation: fadeIn 0.8s ease-in-out;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  text-align: center;
+}
+
+/* 🧠 Заголовок */
+.contact h1 {
+  font-size: 3rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #00a8a8, #0077b6);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ✨ Підзаголовок */
+.contact p {
+  font-size: 1.25rem;
+  color: #444;
+  margin-bottom: 50px;
+  line-height: 1.5;
+  max-width: 700px;
+}
+
+/* 🧾 Форма */
+form {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto;
+  background: #ffffff;
+  padding: 35px 30px;
+  border-radius: 18px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.08);
+}
+
+/* 🏷️ Підписи */
+label {
+  font-weight: 600;
+  color: #0077b6;
+  text-align: left;
+  margin-bottom: 4px;
+  display: block;
+}
+
+/* 📋 Поля введення */
+input,
+textarea,
+select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 1.5px solid #cfd8dc;
+  border-radius: 10px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  transition: border-color 0.25s ease, box-shadow 0.25s ease;
+  background-color: #fdfdfd;
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  border-color: #0077b6;
+  box-shadow: 0 0 0 3px rgba(0, 119, 182, 0.15);
+  outline: none;
+}
+
+/* 🧠 Текстова область */
+textarea {
+  resize: vertical;
+  min-height: 100px;
+}
+
+/* 🖼️ Завантажене зображення (для діагностики) */
+.upload-preview {
+  width: 100%;
+  max-height: 260px;
+  object-fit: cover;
+  border-radius: 12px;
+  margin-top: 8px;
+  border: 1px solid #d0e0e3;
+}
+
+/* 🔘 Кнопка */
+button {
+  background: linear-gradient(135deg, #00a8a8, #0077b6);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 14px 0;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 4px 12px rgba(0, 119, 182, 0.3);
+}
+
+button:hover {
+  background: linear-gradient(135deg, #00b4b4, #0096c7);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 119, 182, 0.35);
+}
+
+button:active {
+  transform: scale(0.97);
+  box-shadow: 0 3px 8px rgba(0, 119, 182, 0.25);
+}
+
+/* 🌈 Анімація */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 🟢 Модальне вікно підтвердження */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999;
+  animation: fadeIn 0.3s ease-in-out;
+  backdrop-filter: blur(4px); /* додано ефект розмиття */
+}
+
+/* 📦 Віконце */
+.modal-box {
+  background: #ffffff;
+  padding: 40px 50px;
+  border-radius: 20px;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.15);
+  text-align: center;
+  max-width: 520px;
+  width: 90%;
+  animation: popUp 0.35s ease;
+}
+
+/* 🐾 Іконка */
+.modal-box::before {
+  content: "🐾";
+  display: block;
+  font-size: 3rem;
+  margin-bottom: 10px;
+  animation: pawBounce 1.2s ease infinite;
+}
+
+/* 🧠 Текст у вікні */
+.modal-box h2 {
+  color: #009688;
+  margin-bottom: 12px;
+  font-size: 1.9rem;
+}
+
+.modal-box p {
+  color: #444;
+  font-size: 1.15rem;
+  margin-bottom: 25px;
+  line-height: 1.6;
+}
+
+/* 🔘 Кнопка "Закрити" */
+.modal-box .btn {
+  background: linear-gradient(135deg, #00a8a8, #0077b6);
+  color: white;
+  font-weight: 600;
+  border: none;
+  padding: 14px 30px;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  font-size: 1rem;
+  box-shadow: 0 5px 15px rgba(0, 119, 182, 0.3);
+}
+
+.modal-box .btn:hover {
+  background: linear-gradient(135deg, #00b4b4, #0096c7);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 18px rgba(0, 119, 182, 0.35);
+}
+
+/* ✨ Анімації */
+@keyframes popUp {
+  from {
+    transform: scale(0.85);
+    opacity: 0;
+  }
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes pawBounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-6px);
+  }
+}
+
+/* 📱 Адаптивність */
+@media (max-width: 768px) {
+  .contact {
+    padding: 80px 15px;
+  }
+
+  .contact h1 {
+    font-size: 2.4rem;
+  }
+
+  .contact p {
+    font-size: 1.1rem;
+    margin-bottom: 35px;
+  }
+
+  form {
+    padding: 28px 20px;
+  }
+}
+
+@media (max-width: 480px) {
+  .contact {
+    padding: 70px 10px;
+  }
+
+  .contact h1 {
+    font-size: 2rem;
+  }
+
+  .contact p {
+    font-size: 1rem;
+  }
+
+  .modal-box {
+    padding: 30px 25px;
+  }
+
+  .modal-box h2 {
+    font-size: 1.5rem;
+  }
+
+  .modal-box p {
+    font-size: 1rem;
+  }
+}

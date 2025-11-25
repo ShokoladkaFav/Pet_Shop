@@ -2,24 +2,29 @@ import React, { useEffect, useState } from "react";
 import styles from "./Dogs.module.css";
 
 interface Product {
+  product_id: number;
   name: string;
   price: number;
   description: string;
   image_url?: string;
 }
 
+interface ToastMessage {
+  id: number;
+  text: string;
+}
+
 const Dogs: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
-  // ✅ Отримуємо товари з PHP
   useEffect(() => {
     fetch("http://localhost/zoo-api/Dogs.php")
       .then((response) => {
-        if (!response.ok) {
+        if (!response.ok)
           throw new Error("Помилка завантаження даних із сервера");
-        }
         return response.json();
       })
       .then((data) => {
@@ -33,31 +38,52 @@ const Dogs: React.FC = () => {
       });
   }, []);
 
-  // ✅ Функція для додавання товару до кошика
   const addToCart = (product: Product) => {
-    const existingCart = JSON.parse(localStorage.getItem("cart") || "[]");
-
-    // Перевірка чи товар вже є у кошику
-    const existingItem = existingCart.find(
-      (item: any) => item.name === product.name
-    );
-
-    let updatedCart;
-    if (existingItem) {
-      updatedCart = existingCart.map((item: any) =>
-        item.name === product.name
-          ? { ...item, quantity: item.quantity + 1 }
-          : item
-      );
-    } else {
-      updatedCart = [...existingCart, { ...product, quantity: 1 }];
+    const userStr = sessionStorage.getItem("user");
+    let cartKey = "";
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        const uid = user.user_id || user.id;
+        if (uid) cartKey = `cart_${uid}`;
+      } catch (e) {
+        console.error(e);
+      }
     }
 
-    localStorage.setItem("cart", JSON.stringify(updatedCart));
-    alert(`✅ ${product.name} додано до кошика!`);
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
+
+    const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
+    const existing = currentCart.find((item: any) => item.product_id === product.product_id);
+
+    if (existing) {
+      existing.quantity = Math.min(existing.quantity + 1, 100);
+    } else {
+      currentCart.push({ ...product, quantity: 1 });
+    }
+
+    localStorage.setItem(cartKey, JSON.stringify(currentCart));
+    window.dispatchEvent(new Event("storage"));
+
+    const newToast: ToastMessage = {
+      id: Date.now(),
+      text: `✅ ${product.name} додано у кошик!`,
+    };
+    setToasts((prev) => [...prev, newToast]);
+    setTimeout(() => removeToast(newToast.id), 5000);
   };
 
-  // 🌀 Стан завантаження
+  const removeToast = (id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
   if (loading)
     return (
       <div className={styles.dogs}>
@@ -66,7 +92,6 @@ const Dogs: React.FC = () => {
       </div>
     );
 
-  // ❌ Помилка завантаження
   if (error)
     return (
       <div className={styles.dogs}>
@@ -75,16 +100,29 @@ const Dogs: React.FC = () => {
       </div>
     );
 
-  // 🐕 Відображення товарів
   return (
     <div className={styles.dogs}>
+      <div className={styles.toastContainer}>
+        {toasts.map((toast) => (
+          <div key={toast.id} className={styles.toast}>
+            <span>{toast.text}</span>
+            <button
+              className={styles.closeBtn}
+              onClick={() => removeToast(toast.id)}
+            >
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
       <h1>Собаки 🐶</h1>
       <p>Все для ваших найвірніших друзів!</p>
 
       <div className={styles.dogsGrid}>
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <div key={index} className={styles.dogCard}>
+          products.map((product) => (
+            <div key={product.product_id} className={styles.dogCard}>
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""
@@ -100,7 +138,7 @@ const Dogs: React.FC = () => {
                 className={styles.btn}
                 onClick={() => addToCart(product)}
               >
-                🛒 В кошик
+                В кошик
               </button>
             </div>
           ))
