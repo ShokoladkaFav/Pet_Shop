@@ -1,17 +1,14 @@
-
 import React, { useEffect, useState } from "react";
 import styles from "./Sale.module.css";
 
-// 🏷️ ТУТ МОЖНА ЗМІНЮВАТИ ID ТОВАРІВ, ЯКІ БУДУТЬ НА АКЦІЇ
-const SALE_IDS = [1, 2, 5, 7]; 
-
+// 🔄 ОНОВЛЕНО: Інтерфейс відповідає Sale.php (Doctrine)
 interface Product {
   product_id: number;
   name: string;
   description: string;
   image_url?: string;
-  price: number; // Це вже буде знижена ціна
-  original_price: number; // Це стара ціна
+  price: number; // Нова ціна (знижена)
+  original_price: number; // Стара ціна
 }
 
 interface ToastMessage {
@@ -26,39 +23,28 @@ const Sale: React.FC = () => {
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   useEffect(() => {
-    // 1. Завантажуємо ВСІ товари
-    fetch("http://localhost/zoo-api/getProducts.php")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Помилка завантаження даних із сервера");
+    fetch("http://localhost/zoo-api/Sale.php")
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("❌ BACKEND ERROR (Raw output):", text);
+            throw new Error("Сервер повернув HTML-помилку. Див. консоль.");
         }
-        return response.json();
       })
-      .then((data: any[]) => {
-        // 2. Фільтруємо: залишаємо тільки ті, що є в списку SALE_IDS
-        const saleItems = data.filter((item) => SALE_IDS.includes(item.product_id));
-
-        // 3. Робимо магію знижок (20%)
-        const processedItems: Product[] = saleItems.map((item) => {
-          const originalPrice = Number(item.price);
-          const discountedPrice = Number((originalPrice * 0.8).toFixed(2)); // Знижка 20%
-
-          return {
-            product_id: item.product_id,
-            name: item.name,
-            description: item.description,
-            image_url: item.image_url,
-            original_price: originalPrice,
-            price: discountedPrice,
-          };
-        });
-
-        setProducts(processedItems);
+      .then((data) => {
+        if (Array.isArray(data)) {
+            setProducts(data);
+        } else if (data.error) {
+            throw new Error(data.error);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("❌ Помилка при отриманні даних:", err);
-        setError("Не вдалося завантажити товари. Спробуйте пізніше.");
+        setError(err.message || "Не вдалося завантажити акційні пропозиції.");
         setLoading(false);
       });
   }, []);
@@ -71,9 +57,7 @@ const Sale: React.FC = () => {
         const user = JSON.parse(userStr);
         const uid = user.user_id || user.id;
         if (uid) cartKey = `cart_${uid}`;
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) { console.error(e); }
     }
 
     if (!cartKey) {
@@ -92,17 +76,14 @@ const Sale: React.FC = () => {
 
     if (existingIndex !== -1) {
       currentCart[existingIndex].quantity += 1;
-      
-      // 🔥 ВАША УЛЮБЛЕНА ФІЧА:
-      // Якщо товар вже був у кошику за вищою ціною (звичайною),
-      // а зараз ми додаємо його з акції — оновлюємо ціну на акційну!
+      // Оновлюємо ціну на акційну, якщо вона була вищою
       if (currentCart[existingIndex].price > product.price) {
          currentCart[existingIndex].price = product.price;
       }
     } else {
       currentCart.push({
         ...product,
-        price: product.price, // Додаємо в кошик вже нову, акційну ціну
+        price: product.price,
         quantity: 1,
       });
     }
@@ -110,7 +91,6 @@ const Sale: React.FC = () => {
     localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
 
-    // 🔔 Додаємо повідомлення замість alert
     const newToast: ToastMessage = {
       id: Date.now(),
       text: `✅ ${product.name} додано у кошик!`,
@@ -123,76 +103,42 @@ const Sale: React.FC = () => {
     setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
-  if (loading) {
-    return (
-      <div className={styles.sale}>
-        <h1>🎉 Акції</h1>
-        <p>Завантаження акційних пропозицій...</p>
-      </div>
-    );
-  }
-
-  if (error) {
-    return (
-      <div className={styles.sale}>
-        <h1>🎉 Акції</h1>
-        <p style={{ color: "red" }}>{error}</p>
-      </div>
-    );
-  }
+  if (loading) return <div className={styles.sale}><h1>🎉 Акції</h1><p>Шукаємо знижки...</p></div>;
+  if (error) return <div className={styles.sale}><h1>🎉 Акції</h1><p style={{ color: "red", fontWeight: "bold" }}>{error}</p><p style={{fontSize: "0.9rem", color: "#666"}}>Перевірте консоль (F12) для деталей.</p></div>;
 
   return (
     <div className={styles.sale}>
-      {/* Контейнер для повідомлень */}
       <div className={styles.toastContainer}>
         {toasts.map((toast) => (
           <div key={toast.id} className={styles.toast}>
             <span>{toast.text}</span>
-            <button
-              className={styles.closeBtn}
-              onClick={() => removeToast(toast.id)}
-            >
-              ✕
-            </button>
+            <button className={styles.closeBtn} onClick={() => removeToast(toast.id)}>✕</button>
           </div>
         ))}
       </div>
 
       <h1>🎉 Акційні товари</h1>
-      <p>Знижка 20% на обрані товари!</p>
+      <p>Встигніть придбати зі знижкою 20%!</p>
 
       <div className={styles.saleGrid}>
         {products.length > 0 ? (
           products.map((product) => (
             <div key={product.product_id} className={styles.saleCard}>
               <img
-                src={
-                  product.image_url && product.image_url.trim() !== ""
-                    ? product.image_url
-                    : "https://placehold.co/300x200?text=Фото+нема"
-                }
+                src={product.image_url && product.image_url.trim() !== "" ? product.image_url : "https://placehold.co/300x200?text=Фото+нема"}
                 alt={product.name}
               />
               <h3>{product.name}</h3>
               <p className={styles.desc}>{product.description}</p>
-
               <div className={styles.priceBlock}>
-                <span className={styles.oldPrice}>
-                  {product.original_price} грн
-                </span>
+                <span className={styles.oldPrice}>{product.original_price} грн</span>
                 <span className={styles.discountedPrice}>{product.price} грн</span>
               </div>
-
-              <button
-                className={styles.btn}
-                onClick={() => addToCart(product)}
-              >
-                🛒 В кошик
-              </button>
+              <button className={styles.btn} onClick={() => addToCart(product)}>🛒 В кошик</button>
             </div>
           ))
         ) : (
-          <p>Наразі акційних товарів немає або вони не знайдені за вказаними ID 🐾</p>
+          <p>Наразі акційних пропозицій немає 🐾</p>
         )}
       </div>
     </div>

@@ -22,23 +22,32 @@ const Products: React.FC = () => {
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/getProducts.php")
-      .then((response) => {
-        if (!response.ok) throw new Error("Помилка завантаження даних");
-        return response.json();
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+            if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("❌ BACKEND ERROR (Raw output):", text);
+            throw new Error("Сервер повернув помилку (HTML замість JSON). Дивіться консоль.");
+        }
       })
       .then((data) => {
-        setProducts(data);
+        if (Array.isArray(data)) {
+            setProducts(data);
+        } else if (data.error) {
+            throw new Error(data.error);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("❌ Помилка при отриманні товарів:", err);
-        setError("Не вдалося завантажити товари. Спробуйте пізніше.");
+        setError(err.message || "Не вдалося завантажити товари.");
         setLoading(false);
       });
   }, []);
 
   const addToCart = (product: Product) => {
-    // Визначаємо ключ кошика (перевіряємо sessionStorage)
     const userStr = sessionStorage.getItem("user");
     let cartKey = "";
 
@@ -52,7 +61,6 @@ const Products: React.FC = () => {
       }
     }
 
-    // Якщо користувача немає, використовуємо Guest Session ID
     if (!cartKey) {
       let guestId = sessionStorage.getItem("guest_session_id");
       if (!guestId) {
@@ -101,7 +109,8 @@ const Products: React.FC = () => {
     return (
       <div className="products-container">
         <h1>Каталог товарів</h1>
-        <p style={{ color: "red" }}>{error}</p>
+        <p style={{ color: "red", fontWeight: "bold" }}>{error}</p>
+        <p style={{ fontSize: "0.9rem", color: "#666" }}>Відкрийте консоль (F12), щоб побачити деталі помилки сервера.</p>
       </div>
     );
 

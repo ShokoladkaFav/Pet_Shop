@@ -63,10 +63,21 @@ function Navbar() {
     if (storedEmployee && storedEmployee !== "undefined") {
        try {
          const parsedEmp = JSON.parse(storedEmployee);
+         
+         // 🛠 Fix #2: Формуємо ім'я з first_name/last_name (структура БД)
+         let empName = "";
+         if (parsedEmp.first_name) {
+             empName = `${parsedEmp.first_name} ${parsedEmp.last_name || ''}`.trim();
+         } else if (parsedEmp.name) {
+             empName = parsedEmp.name;
+         } else {
+             empName = "Співробітник";
+         }
+
          // Адаптуємо під інтерфейс User для відображення
          const empUser: User = {
-           username: parsedEmp.name + " (Staff)",
-           email: parsedEmp.work_email,
+           username: empName + " (Staff)",
+           email: parsedEmp.work_email || "",
            isEmployee: true
          };
          setUser(empUser);
@@ -89,22 +100,17 @@ function Navbar() {
 
   // 🛠️ DEV TOOL: Швидкий вхід в адмінку (Тимчасова функція)
   const handleAdminQuickAccess = () => {
+    // Симулюємо об'єкт, який повертає employee_login.php
     const mockAdmin = {
-      id: 999,
-      name: "Super Admin",
+      employee_id: 999,
+      first_name: "Super",
+      last_name: "Admin",
       work_email: "admin@zoo.com",
-      role: "admin" // Даємо повні права
+      position: "Адмін" // Українська назва з БД
     };
     sessionStorage.setItem("employee", JSON.stringify(mockAdmin));
     
-    // Примусово оновлюємо стан, щоб Navbar побачив зміни
-    const navUser: User = {
-       username: mockAdmin.name + " (Staff)",
-       email: mockAdmin.work_email,
-       isEmployee: true
-    };
-    setUser(navUser);
-    
+    window.dispatchEvent(new Event("storage"));
     navigate("/worker-dashboard");
   };
 
@@ -160,7 +166,6 @@ function Navbar() {
           </div>
         ) : (
           <div className="auth-buttons">
-            {/* 👇 Кнопка для тестів */}
             <button onClick={handleAdminQuickAccess} className="admin-btn">
               Адмін панель
             </button>

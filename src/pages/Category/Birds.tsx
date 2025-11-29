@@ -9,6 +9,11 @@ interface Product {
   image_url?: string;
 }
 
+interface ToastMessage {
+  id: number;
+  text: string;
+}
+
 const Birds: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
@@ -18,17 +23,27 @@ const Birds: React.FC = () => {
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/Birds.php")
-      .then((response) => {
-        if (!response.ok) throw new Error("Помилка завантаження даних із сервера");
-        return response.json();
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("❌ BACKEND ERROR (Raw output):", text);
+            throw new Error("Сервер повернув HTML-помилку. Див. консоль.");
+        }
       })
       .then((data) => {
-        setProducts(data);
+        if (Array.isArray(data)) {
+            setProducts(data);
+        } else if (data.error) {
+            throw new Error(data.error);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("❌ Помилка при отриманні даних:", err);
-        setError("Не вдалося завантажити товари. Спробуйте пізніше.");
+        setError(err.message);
         setLoading(false);
       });
   }, []);
@@ -88,6 +103,7 @@ const Birds: React.FC = () => {
       <div className={styles.birds}>
         <h1>Пташки 🐦</h1>
         <p style={{ color: "red" }}>{error}</p>
+        <p style={{ fontSize: "0.9rem", color: "#666" }}>Перевірте консоль (F12) для деталей.</p>
       </div>
     );
 

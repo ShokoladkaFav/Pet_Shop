@@ -18,19 +18,27 @@ const Fish: React.FC = () => {
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/Fish.php")
-      .then((response) => {
-        if (!response.ok) {
-          throw new Error("Помилка завантаження даних із сервера");
+      .then(async (response) => {
+        const text = await response.text();
+        try {
+            if (!response.ok) throw new Error(`HTTP ${response.status}`);
+            return JSON.parse(text);
+        } catch (e) {
+            console.error("❌ BACKEND ERROR (Raw output):", text);
+            throw new Error("Сервер повернув HTML-помилку. Див. консоль.");
         }
-        return response.json();
       })
       .then((data) => {
-        setProducts(data);
+        if (Array.isArray(data)) {
+            setProducts(data);
+        } else if (data.error) {
+            throw new Error(data.error);
+        }
         setLoading(false);
       })
       .catch((err) => {
         console.error("❌ Помилка при отриманні даних:", err);
-        setError("Не вдалося завантажити товари. Спробуйте пізніше.");
+        setError(err.message);
         setLoading(false);
       });
   }, []);
@@ -90,6 +98,7 @@ const Fish: React.FC = () => {
       <div className={styles.fish}>
         <h1>Рибки 🐠</h1>
         <p style={{ color: "red" }}>{error}</p>
+        <p style={{ fontSize: "0.9rem", color: "#666" }}>Перевірте консоль (F12) для деталей.</p>
       </div>
     );
 

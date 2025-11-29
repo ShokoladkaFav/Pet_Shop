@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./AdminPanel.css";
 
-// 🔄 ОНОВЛЕНО: Інтерфейс відповідає вашій таблиці employees
+// 🔄 ОНОВЛЕНО: Інтерфейс відповідає Doctrine Entity 'Employee'
 interface Employee {
   employee_id: number;
   first_name: string;
@@ -11,7 +11,7 @@ interface Employee {
   position: string;
 }
 
-// 🆕 НОВИЙ: Інтерфейс для постачальників
+// 🔄 ОНОВЛЕНО: Інтерфейс відповідає Doctrine Entity 'Supplier'
 interface Supplier {
   supplier_id: number;
   name: string;
@@ -21,12 +21,17 @@ interface Supplier {
   address: string;
 }
 
+// 🔄 ОНОВЛЕНО: Інтерфейс для Товарів (поля збігаються з getProducts.php + add_product.php)
 interface Product {
   product_id?: number;
   name: string;
   category: string;
   price: string;
   description: string;
+  supplier_id: string; // ID постачальника (string для select, бекенд приведе до int)
+  image_url: string;   
+  quantity?: string;   // Для Inventory (add_product.php обробляє це)
+  location?: string;   // Для Inventory
 }
 
 const AdminPanel: React.FC = () => {
@@ -35,17 +40,23 @@ const AdminPanel: React.FC = () => {
   
   // === STATE ===
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const [suppliers, setSuppliers] = useState<Supplier[]>([]); // 🆕 State для постачальників
+  const [suppliers, setSuppliers] = useState<Supplier[]>([]); 
+  const [products, setProducts] = useState<Product[]>([]); 
   
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   
   // Product Form State
+  const [showProductModal, setShowProductModal] = useState(false); 
   const [newProduct, setNewProduct] = useState<Product>({
     name: "",
-    category: "cats",
+    category: "cats", 
     price: "",
-    description: ""
+    description: "",
+    supplier_id: "",
+    image_url: "",
+    quantity: "", 
+    location: "Склад-A1" 
   });
 
   // Password Modal State
@@ -54,7 +65,7 @@ const AdminPanel: React.FC = () => {
   const [selectedEmpName, setSelectedEmpName] = useState("");
   const [newPassword, setNewPassword] = useState("");
 
-  // Supplier Modal State 🆕
+  // Supplier Modal State
   const [showSupplierModal, setShowSupplierModal] = useState(false);
   const [isEditingSupplier, setIsEditingSupplier] = useState(false);
   const [currentSupplier, setCurrentSupplier] = useState<Supplier>({
@@ -67,7 +78,6 @@ const AdminPanel: React.FC = () => {
   });
 
   useEffect(() => {
-    // 🛡️ Перевірка прав доступу
     const empStr = sessionStorage.getItem("employee");
     if (!empStr) {
       navigate("/employee-login");
@@ -75,22 +85,21 @@ const AdminPanel: React.FC = () => {
     }
     const employee = JSON.parse(empStr);
     
-    // Перевірка на адміна
-    if (employee.role !== "admin" && employee.position !== "Адмін") {
-      alert("Доступ заборонено! Тільки для адміністраторів.");
+    const allowedRoles = ["Адмін", "admin", "Менеджер", "manager"];
+    if (!allowedRoles.includes(employee.position) && employee.role !== "admin") {
+      alert("Доступ до панелі керування обмежено.");
       navigate("/worker-dashboard");
     }
 
-    // Завантаження даних
     fetchEmployees();
     fetchSuppliers();
+    fetchProducts(); 
 
   }, [navigate]);
 
-  // --- API CALLS ---
+  // --- API CALLS (Doctrine Backend) ---
 
   const fetchEmployees = async () => {
-    // Не скидаємо loading глобально, щоб не блимало все
     try {
       const res = await fetch("http://localhost/zoo-api/get_employees.php");
       if (!res.ok) throw new Error("Помилка завантаження працівників");
@@ -98,7 +107,6 @@ const AdminPanel: React.FC = () => {
       if (Array.isArray(data)) setEmployees(data);
     } catch (error: any) {
       console.error(error);
-      // Не блокуємо інтерфейс помилкою працівників, якщо ми на вкладці постачальників
     }
   };
 
@@ -106,16 +114,32 @@ const AdminPanel: React.FC = () => {
     setError(null);
     try {
       const res = await fetch("http://localhost/zoo-api/get_suppliers.php");
-      if (!res.ok) throw new Error("Помилка завантаження постачальників (CORS або 404)");
+      if (!res.ok) throw new Error("Помилка завантаження постачальників");
       const data = await res.json();
       if (Array.isArray(data)) {
         setSuppliers(data);
       } else {
-        throw new Error("Невірний формат даних від сервера");
+        console.error("Невірний формат даних:", data);
+        if (data.error) setError(`Помилка сервера: ${data.error}`);
       }
     } catch (error: any) {
       console.error(error);
-      setError("❌ Не вдалося завантажити постачальників. Перевірте, чи створено файл get_suppliers.php у папці api.");
+      setError("❌ Не вдалося завантажити постачальників.");
+    }
+  };
+
+  const fetchProducts = async () => {
+    try {
+      const res = await fetch("http://localhost/zoo-api/getProducts.php");
+      if (!res.ok) throw new Error("Помилка завантаження товарів");
+      const data = await res.json();
+      if (Array.isArray(data)) {
+          setProducts(data);
+      } else if (data.error) {
+          console.error("API Error:", data.error);
+      }
+    } catch (error) {
+      console.error(error);
     }
   };
 
@@ -144,7 +168,7 @@ const AdminPanel: React.FC = () => {
       });
       const result = await res.json();
       if (result.status === "success") {
-        fetchSuppliers(); // Оновити список
+        fetchSuppliers(); 
       } else {
         alert("Помилка: " + result.message);
       }
@@ -168,7 +192,7 @@ const AdminPanel: React.FC = () => {
       if (result.status === "success") {
         alert(isEditingSupplier ? "Дані оновлено!" : "Постачальника додано!");
         setShowSupplierModal(false);
-        fetchSuppliers();
+        fetchSuppliers(); 
       } else {
         alert("Помилка: " + result.message);
       }
@@ -177,13 +201,81 @@ const AdminPanel: React.FC = () => {
     }
   };
 
-  // --- HANDLERS FOR EMPLOYEES ---
+  // --- HANDLERS FOR PRODUCTS ---
 
-  const handleProductSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-    alert(`Товар "${newProduct.name}" додано! (Simulated)`);
-    setNewProduct({ name: "", category: "cats", price: "", description: "" });
+  const handleOpenAddProduct = () => {
+    setNewProduct({
+      name: "",
+      category: "cats", 
+      price: "",
+      description: "",
+      supplier_id: "",
+      image_url: "",
+      quantity: "", 
+      location: "Склад-A1" 
+    });
+    setShowProductModal(true);
   };
+
+  const handleProductSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+
+    if (!newProduct.supplier_id) {
+        alert("⚠️ Будь ласка, оберіть постачальника зі списку!");
+        return;
+    }
+    
+    if (!newProduct.quantity || parseInt(newProduct.quantity) < 0) {
+        alert("⚠️ Вкажіть коректну кількість товару!");
+        return;
+    }
+
+    try {
+        const response = await fetch("http://localhost/zoo-api/add_product.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(newProduct)
+        });
+        
+        const result = await response.json();
+
+        if (result.status === "success") {
+            alert(`✅ Товар "${newProduct.name}" успішно додано!`);
+            setShowProductModal(false);
+            fetchProducts(); 
+        } else {
+            alert("❌ Помилка при додаванні: " + result.message);
+        }
+    } catch (error) {
+        console.error(error);
+        alert("❌ Помилка з'єднання з сервером.");
+    }
+  };
+
+  const handleDeleteProduct = async (id: number) => {
+    if (!window.confirm("Ви дійсно хочете видалити цей товар?")) return;
+
+    try {
+        const response = await fetch("http://localhost/zoo-api/delete_product.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ product_id: id })
+        });
+        
+        const result = await response.json();
+
+        if (result.status === "success") {
+            alert("🗑️ Товар видалено.");
+            fetchProducts(); 
+        } else {
+            alert("❌ Помилка: " + result.message);
+        }
+    } catch (error) {
+        alert("❌ Помилка з'єднання.");
+    }
+  };
+
+  // --- HANDLERS FOR EMPLOYEES ---
 
   const openPasswordModal = (emp: Employee) => {
     setSelectedEmpId(emp.employee_id);
@@ -217,6 +309,29 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  const handleDeleteEmployee = async (id: number) => {
+    if (!window.confirm("Ви дійсно хочете видалити (звільнити) цього працівника?")) return;
+
+    try {
+        const response = await fetch("http://localhost/zoo-api/delete_employee.php", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ employee_id: id })
+        });
+
+        const result = await response.json();
+
+        if (result.status === "success") {
+            alert("✅ Працівника видалено.");
+            fetchEmployees(); 
+        } else {
+            alert("❌ Помилка: " + result.message);
+        }
+    } catch (error) {
+        alert("❌ Помилка з'єднання.");
+    }
+  };
+
   return (
     <div className="admin-container">
       {/* SIDEBAR */}
@@ -237,19 +352,13 @@ const AdminPanel: React.FC = () => {
             className={activeTab === "employees" ? "active" : ""} 
             onClick={() => setActiveTab("employees")}
           >
-            👔 Персонал (БД)
+            👔 Персонал
           </button>
           <button 
             className={activeTab === "products" ? "active" : ""} 
             onClick={() => setActiveTab("products")}
           >
-            📦 Додати товар
-          </button>
-          <button 
-            className={activeTab === "settings" ? "active" : ""} 
-            onClick={() => setActiveTab("settings")}
-          >
-            ⚙️ Налаштування
+            📦 Товари (Каталог)
           </button>
         </nav>
 
@@ -261,7 +370,7 @@ const AdminPanel: React.FC = () => {
       {/* CONTENT */}
       <main className="admin-content">
         
-        {/* === SUPPLIERS TAB (REPLACES USERS) === */}
+        {/* === SUPPLIERS TAB === */}
         {activeTab === "suppliers" && (
           <div className="admin-panel-card">
             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px"}}>
@@ -273,7 +382,6 @@ const AdminPanel: React.FC = () => {
             
             <p>База даних партнерів та постачальників зоотоварів.</p>
 
-            {/* Вивід помилки, якщо PHP файли не налаштовані */}
             {error && (
               <div style={{backgroundColor: "#f8d7da", color: "#721c24", padding: "10px", borderRadius: "5px", marginBottom: "20px", border: "1px solid #f5c6cb"}}>
                 {error}
@@ -319,7 +427,7 @@ const AdminPanel: React.FC = () => {
         {activeTab === "employees" && (
           <div className="admin-panel-card">
             <h1>👔 Управління Персоналом</h1>
-            <p>Список працівників з бази даних. Ви можете встановити їм паролі.</p>
+            <p>Список працівників з бази даних.</p>
             
             {loading && <p>🔄 Завантаження списку...</p>}
             
@@ -332,6 +440,7 @@ const AdminPanel: React.FC = () => {
                     <th>Email (Логін)</th>
                     <th>Посада</th>
                     <th>Пароль</th>
+                    <th>Дії</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -353,6 +462,14 @@ const AdminPanel: React.FC = () => {
                           🔑 Змінити пароль
                         </button>
                       </td>
+                      <td>
+                        <button 
+                          className="action-btn btn-delete"
+                          onClick={() => handleDeleteEmployee(emp.employee_id)}
+                        >
+                          🗑️
+                        </button>
+                      </td>
                     </tr>
                   ))}
                 </tbody>
@@ -364,61 +481,50 @@ const AdminPanel: React.FC = () => {
         {/* === PRODUCTS TAB === */}
         {activeTab === "products" && (
           <div className="admin-panel-card">
-            <h1>📦 Додати новий товар</h1>
-            <form onSubmit={handleProductSubmit} className="product-form-container">
-              <div className="left-col">
-                <div className="form-group">
-                  <label>Назва товару:</label>
-                  <input 
-                    type="text" 
-                    required 
-                    value={newProduct.name}
-                    onChange={e => setNewProduct({...newProduct, name: e.target.value})}
-                  />
-                </div>
-                <div className="form-group">
-                  <label>Категорія:</label>
-                  <select 
-                    value={newProduct.category}
-                    onChange={e => setNewProduct({...newProduct, category: e.target.value})}
-                  >
-                    <option value="cats">Коти</option>
-                    <option value="dogs">Собаки</option>
-                    <option value="birds">Птахи</option>
-                    <option value="fish">Риби</option>
-                    <option value="sale">Акції</option>
-                  </select>
-                </div>
-                <div className="form-group">
-                  <label>Ціна (грн):</label>
-                  <input 
-                    type="number" 
-                    required 
-                    value={newProduct.price}
-                    onChange={e => setNewProduct({...newProduct, price: e.target.value})}
-                  />
-                </div>
-              </div>
-              <div className="right-col">
-                <div className="form-group">
-                  <label>Опис товару:</label>
-                  <textarea 
-                    required
-                    value={newProduct.description}
-                    onChange={e => setNewProduct({...newProduct, description: e.target.value})}
-                  ></textarea>
-                </div>
-                <button type="submit" className="btn-submit">💾 Зберегти товар</button>
-              </div>
-            </form>
-          </div>
-        )}
-
-        {/* === SETTINGS TAB === */}
-        {activeTab === "settings" && (
-          <div className="admin-panel-card">
-            <h1>⚙️ Налаштування</h1>
-            <p>Глобальні параметри сайту.</p>
+            <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px"}}>
+                <h1 style={{marginBottom: 0}}>📦 Товари</h1>
+                <button className="btn-submit" style={{width: "auto", padding: "10px 20px"}} onClick={handleOpenAddProduct}>
+                    ➕ Додати товар
+                </button>
+            </div>
+            <p>Керування каталогом товарів. При додаванні товару він автоматично потрапляє на склад.</p>
+            
+            <table className="admin-table">
+              <thead>
+                <tr>
+                  <th>ID</th>
+                  <th>Фото</th>
+                  <th>Назва</th>
+                  <th>Категорія</th>
+                  <th>Ціна</th>
+                  <th>Пост. ID</th>
+                  <th>Дії</th>
+                </tr>
+              </thead>
+              <tbody>
+                {products.map(prod => (
+                  <tr key={prod.product_id}>
+                    <td>{prod.product_id}</td>
+                    <td>
+                        {prod.image_url ? 
+                            <img src={prod.image_url} alt="img" style={{width: "40px", height: "40px", objectFit: "cover", borderRadius: "4px"}} /> 
+                            : "❌"
+                        }
+                    </td>
+                    <td><strong>{prod.name}</strong></td>
+                    <td>{prod.category}</td>
+                    <td>{prod.price} ₴</td>
+                    <td>{prod.supplier_id}</td>
+                    <td>
+                      <button className="action-btn btn-delete" onClick={() => handleDeleteProduct(prod.product_id!)}>
+                        🗑️ Видалити
+                      </button>
+                    </td>
+                  </tr>
+                ))}
+                {products.length === 0 && <tr><td colSpan={7}>Товарів немає. Додайте перший! 📦</td></tr>}
+              </tbody>
+            </table>
           </div>
         )}
 
@@ -448,58 +554,149 @@ const AdminPanel: React.FC = () => {
       {/* === MODAL FOR SUPPLIER (ADD/EDIT) === */}
       {showSupplierModal && (
         <div className="modal-overlay-admin">
-          <div className="modal-admin" style={{width: "500px", textAlign: "left"}}>
-            <h3 style={{textAlign: "center"}}>{isEditingSupplier ? "✏️ Редагувати" : "➕ Додати"} постачальника</h3>
-            
+          <div className="modal-admin">
+            <h3>{isEditingSupplier ? "✏️ Редагувати" : "➕ Додати"} постачальника</h3>
             <form onSubmit={handleSaveSupplier}>
                 <div className="form-group">
                     <label>Назва компанії:</label>
-                    <input 
-                        type="text" required 
-                        value={currentSupplier.name}
-                        onChange={e => setCurrentSupplier({...currentSupplier, name: e.target.value})}
-                    />
+                    <input type="text" required value={currentSupplier.name} onChange={e => setCurrentSupplier({...currentSupplier, name: e.target.value})} />
                 </div>
                 <div className="form-group">
                     <label>Контактна особа:</label>
-                    <input 
-                        type="text" 
-                        value={currentSupplier.contact_person}
-                        onChange={e => setCurrentSupplier({...currentSupplier, contact_person: e.target.value})}
-                    />
+                    <input type="text" value={currentSupplier.contact_person} onChange={e => setCurrentSupplier({...currentSupplier, contact_person: e.target.value})} />
                 </div>
-                <div style={{display: "grid", gridTemplateColumns: "1fr 1fr", gap: "15px"}}>
+                <div className="form-row">
                     <div className="form-group">
                         <label>Телефон:</label>
-                        <input 
-                            type="text" 
-                            value={currentSupplier.phone}
-                            onChange={e => setCurrentSupplier({...currentSupplier, phone: e.target.value})}
-                        />
+                        <input type="text" value={currentSupplier.phone} onChange={e => setCurrentSupplier({...currentSupplier, phone: e.target.value})} />
                     </div>
                     <div className="form-group">
                         <label>Email:</label>
-                        <input 
-                            type="email" 
-                            value={currentSupplier.email}
-                            onChange={e => setCurrentSupplier({...currentSupplier, email: e.target.value})}
-                        />
+                        <input type="email" value={currentSupplier.email} onChange={e => setCurrentSupplier({...currentSupplier, email: e.target.value})} />
                     </div>
                 </div>
                 <div className="form-group">
                     <label>Адреса:</label>
-                    <input 
-                        type="text" 
-                        value={currentSupplier.address}
-                        onChange={e => setCurrentSupplier({...currentSupplier, address: e.target.value})}
-                    />
+                    <input type="text" value={currentSupplier.address} onChange={e => setCurrentSupplier({...currentSupplier, address: e.target.value})} />
                 </div>
-
-                <div className="modal-actions" style={{marginTop: "20px"}}>
+                <div className="modal-actions">
                     <button type="button" className="cancel-btn" onClick={() => setShowSupplierModal(false)}>Скасувати</button>
                     <button type="submit" className="save-btn">Зберегти</button>
                 </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* === MODAL FOR ADDING PRODUCT (NEW) === */}
+      {showProductModal && (
+        <div className="modal-overlay-admin">
+          <div className="modal-admin" style={{maxWidth: "550px"}}>
+             <h3>📦 Додати новий товар</h3>
+             <form onSubmit={handleProductSubmit}>
+                  <div className="form-group">
+                    <label>Назва товару:</label>
+                    <input 
+                      type="text" required 
+                      placeholder="Наприклад: Корм для котів Whiskas"
+                      value={newProduct.name}
+                      onChange={e => setNewProduct({...newProduct, name: e.target.value})}
+                    />
+                  </div>
+                  
+                  <div className="form-row">
+                      <div className="form-group">
+                        <label>Категорія:</label>
+                        <select 
+                          value={newProduct.category}
+                          onChange={e => setNewProduct({...newProduct, category: e.target.value})}
+                          style={{fontWeight: "bold", color: "#2c3e50"}}
+                        >
+                          <option value="cats">🐱 Коти</option>
+                          <option value="dogs">🐶 Собаки</option>
+                          <option value="birds">🐦 Птахи</option>
+                          <option value="fish">🐠 Риби</option>
+                          <option value="Обладнання">⚙️ Обладнання (Акваріуми)</option>
+                          <option value="sale">🔥 Акції</option>
+                          <option value="vet">🩺 Ветеринарія</option>
+                          <option value="other">📦 Інше</option>
+                        </select>
+                      </div>
+                      
+                      <div className="form-group">
+                        <label>Ціна (грн):</label>
+                        <input 
+                          type="number" step="0.01" required 
+                          placeholder="0.00"
+                          value={newProduct.price}
+                          onChange={e => setNewProduct({...newProduct, price: e.target.value})}
+                        />
+                      </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>Постачальник:</label>
+                    <select 
+                      required
+                      value={newProduct.supplier_id}
+                      onChange={e => setNewProduct({...newProduct, supplier_id: e.target.value})}
+                    >
+                      <option value="">-- Оберіть зі списку --</option>
+                      {suppliers.map(sup => (
+                          <option key={sup.supplier_id} value={sup.supplier_id}>
+                              {sup.name} (Код: {sup.supplier_id})
+                          </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* 🆕 Секція для інвентаризації */}
+                  <div className="form-row">
+                      <div className="form-group">
+                        <label>Кількість (шт):</label>
+                        <input 
+                          type="number" min="0" required 
+                          placeholder="100"
+                          value={newProduct.quantity}
+                          onChange={e => setNewProduct({...newProduct, quantity: e.target.value})}
+                        />
+                      </div>
+                      <div className="form-group">
+                        <label>Склад (Локація):</label>
+                        <input 
+                          type="text" required 
+                          placeholder="Склад-A1"
+                          value={newProduct.location}
+                          onChange={e => setNewProduct({...newProduct, location: e.target.value})}
+                        />
+                      </div>
+                  </div>
+
+                  <div className="form-group">
+                    <label>URL фото товару:</label>
+                    <input 
+                      type="text" placeholder="https://..."
+                      value={newProduct.image_url}
+                      onChange={e => setNewProduct({...newProduct, image_url: e.target.value})}
+                    />
+                  </div>
+
+                  <div className="form-group">
+                    <label>Опис товару (Включайте ключові слова для пошуку):</label>
+                    <textarea 
+                      required
+                      placeholder="Опишіть товар..."
+                      value={newProduct.description}
+                      onChange={e => setNewProduct({...newProduct, description: e.target.value})}
+                      style={{height: "80px"}}
+                    ></textarea>
+                  </div>
+
+                  <div className="modal-actions">
+                      <button type="button" className="cancel-btn" onClick={() => setShowProductModal(false)}>Скасувати</button>
+                      <button type="submit" className="save-btn">Зберегти</button>
+                  </div>
+             </form>
           </div>
         </div>
       )}

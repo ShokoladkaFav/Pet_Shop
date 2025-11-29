@@ -24,7 +24,12 @@ const EmployeeLogin: React.FC = () => {
       const data = await response.json();
 
       if (data.status === "success") {
-        localStorage.setItem("employee", JSON.stringify(data.employee));
+        // 🛠 ВИПРАВЛЕННЯ: Використовуємо sessionStorage, оскільки Navbar та Dashboard слухають саме його
+        sessionStorage.setItem("employee", JSON.stringify(data.employee));
+        
+        // Сповіщаємо інші компоненти (Navbar) про зміну стану
+        window.dispatchEvent(new Event("storage"));
+        
         navigate("/worker-dashboard");
       } else {
         setMessage(data.message || "Помилка входу. Перевірте дані.");

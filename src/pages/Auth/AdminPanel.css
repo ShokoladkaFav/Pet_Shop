@@ -17,6 +17,7 @@
   padding: 20px;
   flex-shrink: 0;
   box-shadow: 4px 0 10px rgba(0,0,0,0.1);
+  box-sizing: border-box;
 }
 
 .admin-header {
@@ -173,7 +174,7 @@
 .product-form-container {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 30px;
+  gap: 20px;
 }
 
 .form-group {
@@ -182,34 +183,54 @@
 
 .form-group label {
   display: block;
-  margin-bottom: 8px;
+  margin-bottom: 6px;
   font-weight: 600;
   color: #495057;
+  font-size: 0.9rem;
 }
 
 .form-group input, 
 .form-group select, 
 .form-group textarea {
   width: 100%;
-  padding: 12px;
+  padding: 10px 12px; /* Повернув комфортний відступ */
   border: 1px solid #ced4da;
-  border-radius: 8px;
-  font-size: 1rem;
+  border-radius: 6px;
+  font-size: 0.95rem;
   box-sizing: border-box;
+  transition: border-color 0.2s;
+}
+
+.form-group input:focus,
+.form-group select:focus,
+.form-group textarea:focus {
+  border-color: #80bdff;
+  outline: none;
 }
 
 .form-group textarea {
   resize: vertical;
-  min-height: 100px;
+  min-height: 80px;
+}
+
+/* Side-by-side inputs with wrap support */
+.form-row {
+  display: flex;
+  gap: 20px;
+  flex-wrap: wrap;
+}
+.form-row .form-group {
+  flex: 1;
+  min-width: 160px;
 }
 
 .btn-submit {
   background-color: #198754;
   color: white;
-  padding: 12px 30px;
+  padding: 10px 20px;
   border: none;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  border-radius: 6px;
+  font-size: 1rem;
   cursor: pointer;
   margin-top: 10px;
   width: 100%;
@@ -229,56 +250,84 @@
   align-items: center;
   justify-content: center;
   z-index: 1000;
+  padding: 15px;
+  box-sizing: border-box;
+  backdrop-filter: blur(3px);
 }
 
 .modal-admin {
   background: white;
-  padding: 30px;
-  border-radius: 12px;
-  width: 400px;
-  box-shadow: 0 10px 25px rgba(0,0,0,0.2);
-  text-align: center;
+  /* 🔥 Збільшуємо відступи з боків, щоб візуально скоротити поля вводу */
+  padding: 30px 50px; 
+  border-radius: 16px;
+  width: 100%; 
+  max-width: 480px; /* Трохи ширше, щоб відступи не з'їли весь контент */
+  max-height: 90vh; 
+  overflow-y: auto; 
+  overflow-x: hidden !important;
+  box-shadow: 0 10px 40px rgba(0,0,0,0.3);
+  display: block;
+  box-sizing: border-box;
+  text-align: left;
 }
 
 .modal-admin h3 {
   margin-top: 0;
+  margin-bottom: 25px;
   color: #343a40;
+  text-align: center;
+  font-size: 1.4rem;
 }
 
 .password-input {
   width: 100%;
-  padding: 12px;
-  margin: 20px 0;
-  border: 2px solid #dee2e6;
-  border-radius: 8px;
-  font-size: 1.1rem;
+  padding: 10px 12px;
+  margin: 15px 0;
+  border: 1px solid #dee2e6;
+  border-radius: 6px;
+  font-size: 0.95rem;
   text-align: center;
+  box-sizing: border-box;
 }
 
 .modal-actions {
   display: flex;
-  justify-content: space-between;
-  gap: 15px;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 25px;
 }
 
 .cancel-btn {
-  flex: 1;
-  padding: 10px;
+  padding: 10px 24px;
   border: 1px solid #ced4da;
-  background: white;
+  background: #f8f9fa;
+  color: #343a40;
   border-radius: 6px;
   cursor: pointer;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: all 0.2s ease;
+}
+
+.cancel-btn:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
 }
 
 .save-btn {
-  flex: 1;
-  padding: 10px;
+  padding: 10px 30px;
   background: #198754;
   color: white;
   border: none;
   border-radius: 6px;
   cursor: pointer;
-  font-weight: bold;
+  font-weight: 600;
+  font-size: 0.95rem;
+  transition: background 0.2s ease;
+}
+
+.save-btn:hover {
+  background-color: #157347;
 }
 
 @keyframes fadeIn {
@@ -290,4 +339,11 @@
   .admin-container { flex-direction: column; }
   .admin-sidebar { width: 100%; }
   .product-form-container { grid-template-columns: 1fr; }
+  .modal-actions { flex-direction: column-reverse; } 
+  .cancel-btn, .save-btn { width: 100%; text-align: center; }
+  
+  .modal-admin {
+    padding: 25px 20px; /* На мобільному менші відступи */
+    max-width: 90%;
+  }
 }
