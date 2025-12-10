@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Dogs.module.css";
+import "./Dogs.css";
 
 interface Product {
   product_id: number;
@@ -95,7 +95,7 @@ const Dogs: React.FC = () => {
 
   if (loading)
     return (
-      <div className={styles.dogs}>
+      <div className="dogs">
         <h1>Собаки 🐶</h1>
         <p>Завантаження товарів...</p>
       </div>
@@ -103,7 +103,7 @@ const Dogs: React.FC = () => {
 
   if (error)
     return (
-      <div className={styles.dogs}>
+      <div className="dogs">
         <h1>Собаки 🐶</h1>
         <p style={{ color: "red" }}>{error}</p>
         <p style={{ fontSize: "0.9rem", color: "#666" }}>Перевірте консоль (F12) для деталей.</p>
@@ -111,13 +111,13 @@ const Dogs: React.FC = () => {
     );
 
   return (
-    <div className={styles.dogs}>
-      <div className={styles.toastContainer}>
+    <div className="dogs">
+      <div className="toast-container">
         {toasts.map((toast) => (
-          <div key={toast.id} className={styles.toast}>
+          <div key={toast.id} className="toast">
             <span>{toast.text}</span>
             <button
-              className={styles.closeBtn}
+              className="close-btn"
               onClick={() => removeToast(toast.id)}
             >
               ✕
@@ -129,10 +129,10 @@ const Dogs: React.FC = () => {
       <h1>Собаки 🐶</h1>
       <p>Все для ваших найвірніших друзів!</p>
 
-      <div className={styles.dogsGrid}>
+      <div className="dogs-grid">
         {products.length > 0 ? (
           products.map((product) => (
-            <div key={product.product_id} className={styles.dogCard}>
+            <div key={product.product_id} className="dog-card">
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""
@@ -142,10 +142,10 @@ const Dogs: React.FC = () => {
                 alt={product.name}
               />
               <h3>{product.name}</h3>
-              <p className={styles.desc}>{product.description}</p>
-              <p className={styles.price}>{product.price} грн</p>
+              <p className="desc">{product.description}</p>
+              <p className="price">{product.price} грн</p>
               <button
-                className={styles.btn}
+                className="btn"
                 onClick={() => addToCart(product)}
               >
                 В кошик

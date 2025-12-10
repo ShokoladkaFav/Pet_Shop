@@ -1,3 +1,4 @@
+
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Auth.css";
@@ -5,12 +6,19 @@ import "./Auth.css";
 const EmployeeLogin: React.FC = () => {
   const [workEmail, setWorkEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [message, setMessage] = useState("");
   const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    
+    if (!workEmail.trim() || !password.trim()) {
+      setMessage("⚠️ Введіть робочий Email та пароль.");
+      return;
+    }
+
     setLoading(true);
     setMessage("");
 
@@ -18,54 +26,94 @@ const EmployeeLogin: React.FC = () => {
       const response = await fetch("http://localhost/zoo-api/employee_login.php", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ work_email: workEmail, password }),
+        body: JSON.stringify({ 
+          work_email: workEmail.trim(), 
+          password: password.trim() 
+        }),
       });
 
-      const data = await response.json();
+      // Безпечна обробка відповіді (на випадок PHP помилок)
+      const text = await response.text();
+      let data;
+      try {
+        data = JSON.parse(text);
+      } catch (err) {
+        console.error("Server Error:", text);
+        throw new Error("Сервер повернув помилку. Перевірте консоль.");
+      }
 
       if (data.status === "success") {
-        // 🛠 ВИПРАВЛЕННЯ: Використовуємо sessionStorage, оскільки Navbar та Dashboard слухають саме його
+        if (data.token) {
+          sessionStorage.setItem("employee_token", data.token);
+        } else {
+          sessionStorage.setItem("employee_token", "dummy_token");
+        }
+        
         sessionStorage.setItem("employee", JSON.stringify(data.employee));
+        window.dispatchEvent(new Event("storage")); // Оновлюємо Navbar
         
-        // Сповіщаємо інші компоненти (Navbar) про зміну стану
-        window.dispatchEvent(new Event("storage"));
-        
-        navigate("/worker-dashboard");
+        setMessage("✅ Вхід успішний! Переходимо в кабінет...");
+        setTimeout(() => navigate("/worker-dashboard"), 1000);
       } else {
-        setMessage(data.message || "Помилка входу. Перевірте дані.");
+        setMessage(`❌ ${data.message || "Помилка входу."}`);
       }
-    } catch (error) {
-      console.error("Помилка:", error);
-      setMessage("Помилка сервера. Спробуйте пізніше.");
+    } catch (error: any) {
+      console.error("Login Error:", error);
+      setMessage("❌ Помилка з'єднання з сервером.");
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="auth-container">
-      <div className="auth-box">
-        <h2>Вхід працівника</h2>
-        <form onSubmit={handleLogin}>
+    <div className="auth-page">
+      <div className="auth-container">
+        <h2>💼 Вхід для персоналу</h2>
+        <p style={{marginBottom: "20px", color: "#666"}}>Використовуйте робочий email</p>
+        
+        <form className="auth-form" onSubmit={handleLogin}>
           <input
             type="email"
-            placeholder="Робочий Email"
+            placeholder="Робочий Email (напр. worRasel...)"
             value={workEmail}
             onChange={(e) => setWorkEmail(e.target.value)}
-            required
+            disabled={loading}
           />
-          <input
-            type="password"
-            placeholder="Пароль"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-          <button type="submit" disabled={loading}>
-            {loading ? "Вхід..." : "Увійти"}
+          
+          <div className="password-group">
+            <input
+              type={showPassword ? "text" : "password"}
+              placeholder="Пароль"
+              value={password}
+              className="password-input"
+              onChange={(e) => setPassword(e.target.value)}
+              disabled={loading}
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              tabIndex={-1}
+              title={showPassword ? "Приховати" : "Показати"}
+            >
+              {showPassword ? "🙈" : "👁️"}
+            </button>
+          </div>
+
+          <button className="auth-btn" type="submit" disabled={loading} style={{background: "linear-gradient(90deg, #455a64, #37474f)"}}>
+            {loading ? "Перевірка..." : "Увійти в систему"}
           </button>
         </form>
-        {message && <p className="auth-message">{message}</p>}
+
+        {message && (
+          <p className="auth-text" style={{ fontWeight: "bold", color: message.startsWith("✅") ? "green" : "red" }}>
+            {message}
+          </p>
+        )}
+        
+        <p className="auth-text">
+          <a href="/login" className="auth-link">← Повернутися до звичайного входу</a>
+        </p>
       </div>
     </div>
   );

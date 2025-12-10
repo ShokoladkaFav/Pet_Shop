@@ -1,3 +1,4 @@
+
 /* 🐠 Основний контейнер */
 .fish {
   width: 100vw;
@@ -10,195 +11,180 @@
   flex-direction: column;
   align-items: center;
   justify-content: flex-start;
+  text-align: center;
 }
 
-/* Заголовок */
+/* 🐾 Заголовок */
 .fish h1 {
-  font-size: 3rem;
+  font-size: 3.2rem;
   font-weight: 700;
-  margin-bottom: 12px;
+  margin-bottom: 14px;
   letter-spacing: 1px;
-  background: linear-gradient(90deg, #0077b6, #00b4d8);
+  background: linear-gradient(90deg, #00acc1, #26a69a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-/* Підзаголовок */
+/* ✨ Підзаголовок */
 .fish p {
-  font-size: 1.3rem;
+  font-size: 1.35rem;
   color: #555;
   margin-bottom: 60px;
   line-height: 1.6;
-  text-align: center;
 }
 
-/* Сітка карток */
+/* 🧩 Сітка карток */
 .fishGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  /* 🔥 auto-fill запобігає розтягуванню однієї картки на весь рядок */
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
   gap: 35px;
   max-width: 1200px;
   width: 100%;
   margin: 0 auto;
   padding: 0 15px 50px;
   box-sizing: border-box;
+  /* Центруємо картки, якщо їх мало */
+  justify-content: center;
 }
 
-/* Картка товару */
+/* 🏷️ Картка товару */
 .fishCard {
-  background: #ffffff;
-  border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.08);
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: transform 0.35s ease, box-shadow 0.35s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  justify-content: space-between;
-  text-align: center;
+  align-items: center; /* Центрування контенту */
+  height: 460px;
+  position: relative;
+  overflow: hidden;
 }
 
 .fishCard:hover {
-  transform: translateY(-8px) scale(1.03);
-  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.15);
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
 }
 
-/* Зображення */
+/* 🖼️ Зображення */
 .fishCard img {
   width: 100%;
-  height: 210px;
+  height: 190px;
   object-fit: cover;
   border-radius: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 10px;
   transition: transform 0.3s ease;
+  flex-shrink: 0; /* Забороняємо стиснення картинки */
 }
 
 .fishCard:hover img {
   transform: scale(1.05);
 }
 
-/* Назва товару */
+/* 📝 Назва товару */
 .fishCard h3 {
-  font-size: 1.4rem;
-  color: #333;
-  margin-bottom: 8px;
+  font-size: 1.3rem; /* Трохи збільшено */
+  margin-bottom: 6px;
+  color: #222;
   font-weight: 600;
+  text-align: center;
+  line-height: 1.2;
 }
 
-/* Опис */
+/* 📄 Опис - ОБМЕЖЕННЯ РЯДКІВ */
 .desc {
-  font-size: 1rem;
-  color: #666;
-  margin-bottom: 12px;
+  font-size: 0.95rem;
+  color: #555;
   line-height: 1.4;
+  text-align: center;
+  margin-bottom: 10px;
+  
+  /* 🔥 Обмеження тексту до 4 рядків, щоб не виштовхував ціну */
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-/* Ціна */
+/* 💸 Ціна */
 .price {
-  font-size: 1.2rem;
-  color: #0077b6;
-  font-weight: bold;
-  margin-bottom: 15px;
+  font-size: 1.5rem; /* 🔥 Велика ціна */
+  color: #333;       /* 🔥 Темний колір для контрасту */
+  font-weight: 800;  /* 🔥 Жирний шрифт */
+  
+  margin-top: auto;    /* 🔥 Притискає ціну до низу контейнера (але над кнопкою) */
+  margin-bottom: 60px; /* 🔥 Відступ знизу, щоб не перекривала кнопка */
 }
 
-/* Кнопка */
+/* 🛒 Кнопка */
 .btn {
-  display: inline-block;
-  width: 100%;
-  padding: 14px 0;
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
+  display: block;
+  width: 75%;
+  padding: 8px 0;
+  background: linear-gradient(135deg, #26c6da);
   color: white;
   font-weight: 600;
-  font-size: 1.05rem;
-  border: none;
-  border-radius: 10px;
+  font-size: 0.9rem;
+  border-radius: 8px;
   text-decoration: none;
-  transition: background 0.35s ease, transform 0.2s ease;
+  text-align: center;
+  /* text-transform: uppercase; <--- ПРИБРАНО */
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(38, 198, 218, 0.25);
+  border: none;
   cursor: pointer;
+  position: absolute;
+  bottom: 16px;
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 .btn:hover {
-  background: linear-gradient(135deg, #48cae4, #0096c7);
-  transform: translateY(-3px);
+  background: linear-gradient(135deg, #00acc1);
+  transform: translateX(-50%) translateY(-3px);
+  box-shadow: 0 6px 14px rgba(0, 172, 193, 0.35);
 }
 
-/* Анімація */
+.btn:active {
+  transform: translateX(-50%) scale(0.97);
+  box-shadow: 0 3px 8px rgba(38, 198, 218, 0.25);
+}
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(15px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
-/* 🧾 Повідомлення про додавання у кошик */
-.toast {
-  position: fixed;
-  top: 20px;
-  left: 20px; /* 📍 зліва зверху */
-  background: linear-gradient(135deg, #00b4d8, #0077b6);
-  color: white;
-  padding: 12px 18px;
-  border-radius: 10px;
-  font-size: 1rem;
-  font-weight: 500;
-  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
-  z-index: 9999;
-  animation: slideIn 0.4s ease, fadeOut 0.4s ease 2.1s forwards;
-}
-
-/* 🔄 Анімації появи та зникнення */
-@keyframes slideIn {
-  from {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-@keyframes fadeOut {
-  to {
-    opacity: 0;
-    transform: translateX(-40px);
-  }
-}
-
-/* 📱 Адаптивність */
 @media (max-width: 768px) {
-  .fish h1 {
-    font-size: 2.4rem;
+  .fishCard {
+    height: 420px;
   }
-
-  .fish p {
-    font-size: 1.1rem;
-    margin-bottom: 40px;
-  }
-
   .fishCard img {
-    height: 180px;
+    height: 170px;
   }
-
   .btn {
-    font-size: 1rem;
+    width: 85%;
+    font-size: 0.85rem;
   }
 }
 
 @media (max-width: 480px) {
+  .fishCard {
+    height: 380px;
+  }
+  .fishCard img {
+    height: 150px;
+  }
+  .btn {
+    width: 90%;
+  }
   .fish {
-    padding: 70px 10px;
+    padding: 60px 10px;
   }
-
   .fish h1 {
-    font-size: 2rem;
-  }
-
-  .fish p {
-    font-size: 1rem;
+    font-size: 1.8rem;
   }
 }

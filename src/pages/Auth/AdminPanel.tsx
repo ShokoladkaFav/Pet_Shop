@@ -28,7 +28,7 @@ interface Product {
   category: string;
   price: string;
   description: string;
-  supplier_id: string; // ID постачальника (string для select, бекенд приведе до int)
+  supplier_id: string | number; // Може бути int з БД або string з форми
   image_url: string;   
   quantity?: string;   // Для Inventory (add_product.php обробляє це)
   location?: string;   // Для Inventory
@@ -77,6 +77,9 @@ const AdminPanel: React.FC = () => {
     address: ""
   });
 
+  // 🔑 Helper to get token
+  const getToken = () => sessionStorage.getItem("employee_token");
+
   useEffect(() => {
     const empStr = sessionStorage.getItem("employee");
     if (!empStr) {
@@ -85,6 +88,7 @@ const AdminPanel: React.FC = () => {
     }
     const employee = JSON.parse(empStr);
     
+    // Перевірка прав (допускаємо адмінів та менеджерів до цієї панелі, хоча можна обмежити суворіше)
     const allowedRoles = ["Адмін", "admin", "Менеджер", "manager"];
     if (!allowedRoles.includes(employee.position) && employee.role !== "admin") {
       alert("Доступ до панелі керування обмежено.");
@@ -143,6 +147,13 @@ const AdminPanel: React.FC = () => {
     }
   };
 
+  // --- HELPERS ---
+  const getSupplierName = (id: string | number) => {
+    const numId = Number(id);
+    const sup = suppliers.find(s => s.supplier_id === numId);
+    return sup ? sup.name : `ID: ${id}`;
+  };
+
   // --- HANDLERS FOR SUPPLIERS ---
 
   const handleOpenAddSupplier = () => {
@@ -163,7 +174,10 @@ const AdminPanel: React.FC = () => {
     try {
       const res = await fetch("http://localhost/zoo-api/manage_suppliers.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}` 
+        },
         body: JSON.stringify({ action: "delete", supplier_id: id })
       });
       const result = await res.json();
@@ -184,7 +198,10 @@ const AdminPanel: React.FC = () => {
     try {
       const res = await fetch("http://localhost/zoo-api/manage_suppliers.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${getToken()}`
+        },
         body: JSON.stringify({ action, ...currentSupplier })
       });
       const result = await res.json();
@@ -233,7 +250,10 @@ const AdminPanel: React.FC = () => {
     try {
         const response = await fetch("http://localhost/zoo-api/add_product.php", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${getToken()}`
+            },
             body: JSON.stringify(newProduct)
         });
         
@@ -258,7 +278,10 @@ const AdminPanel: React.FC = () => {
     try {
         const response = await fetch("http://localhost/zoo-api/delete_product.php", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${getToken()}`
+            },
             body: JSON.stringify({ product_id: id })
         });
         
@@ -290,7 +313,10 @@ const AdminPanel: React.FC = () => {
     try {
       const response = await fetch("http://localhost/zoo-api/admin_update_password.php", {
          method: "POST",
-         headers: { "Content-Type": "application/json" },
+         headers: { 
+           "Content-Type": "application/json",
+           "Authorization": `Bearer ${getToken()}`
+         },
          body: JSON.stringify({ 
            id: selectedEmpId, 
            password: newPassword 
@@ -315,7 +341,10 @@ const AdminPanel: React.FC = () => {
     try {
         const response = await fetch("http://localhost/zoo-api/delete_employee.php", {
             method: "POST",
-            headers: { "Content-Type": "application/json" },
+            headers: { 
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${getToken()}`
+            },
             body: JSON.stringify({ employee_id: id })
         });
 
@@ -497,7 +526,7 @@ const AdminPanel: React.FC = () => {
                   <th>Назва</th>
                   <th>Категорія</th>
                   <th>Ціна</th>
-                  <th>Пост. ID</th>
+                  <th>Постачальник</th>
                   <th>Дії</th>
                 </tr>
               </thead>
@@ -514,7 +543,8 @@ const AdminPanel: React.FC = () => {
                     <td><strong>{prod.name}</strong></td>
                     <td>{prod.category}</td>
                     <td>{prod.price} ₴</td>
-                    <td>{prod.supplier_id}</td>
+                    {/* Тут використовуємо helper для виводу імені */}
+                    <td>{getSupplierName(prod.supplier_id)}</td>
                     <td>
                       <button className="action-btn btn-delete" onClick={() => handleDeleteProduct(prod.product_id!)}>
                         🗑️ Видалити

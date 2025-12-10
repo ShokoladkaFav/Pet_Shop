@@ -1,3 +1,4 @@
+
 import { Link, useNavigate } from "react-router-dom";
 import "./Navbar.css";
 import { useEffect, useState } from "react";
@@ -64,7 +65,7 @@ function Navbar() {
        try {
          const parsedEmp = JSON.parse(storedEmployee);
          
-         // 🛠 Fix #2: Формуємо ім'я з first_name/last_name (структура БД)
+         // 🛠 Fix: Формуємо ім'я з first_name/last_name (структура БД)
          let empName = "";
          if (parsedEmp.first_name) {
              empName = `${parsedEmp.first_name} ${parsedEmp.last_name || ''}`.trim();
@@ -92,26 +93,12 @@ function Navbar() {
   // 🚪 Вихід із акаунту
   const handleLogout = () => {
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("user_token"); // Видаляємо токен користувача
     sessionStorage.removeItem("employee");
+    sessionStorage.removeItem("employee_token"); // Видаляємо токен працівника
     setUser(null);
     updateCartCount(null);
     navigate("/login");
-  };
-
-  // 🛠️ DEV TOOL: Швидкий вхід в адмінку (Тимчасова функція)
-  const handleAdminQuickAccess = () => {
-    // Симулюємо об'єкт, який повертає employee_login.php
-    const mockAdmin = {
-      employee_id: 999,
-      first_name: "Super",
-      last_name: "Admin",
-      work_email: "admin@zoo.com",
-      position: "Адмін" // Українська назва з БД
-    };
-    sessionStorage.setItem("employee", JSON.stringify(mockAdmin));
-    
-    window.dispatchEvent(new Event("storage"));
-    navigate("/worker-dashboard");
   };
 
   useEffect(() => {
@@ -166,10 +153,6 @@ function Navbar() {
           </div>
         ) : (
           <div className="auth-buttons">
-            <button onClick={handleAdminQuickAccess} className="admin-btn">
-              Адмін панель
-            </button>
-            
             <button onClick={() => navigate("/login")} className="login-btn">
               Увійти
             </button>

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import styles from "./Birds.module.css";
+import "./Birds.css";
 
 interface Product {
   product_id: number;
@@ -18,8 +18,7 @@ const Birds: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastMessage, setToastMessage] = useState("");
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/Birds.php")
@@ -82,17 +81,21 @@ const Birds: React.FC = () => {
     localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
 
-    setToastMessage(`✅ ${product.name} додано у кошик!`);
-    setShowToast(true);
+    const newToast: ToastMessage = {
+      id: Date.now(),
+      text: `✅ ${product.name} додано у кошик!`,
+    };
+    setToasts((prev) => [...prev, newToast]);
+    setTimeout(() => removeToast(newToast.id), 5000);
+  };
 
-    setTimeout(() => {
-      setShowToast(false);
-    }, 5000);
+  const removeToast = (id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   if (loading)
     return (
-      <div className={styles.birds}>
+      <div className="birds">
         <h1>Пташки 🐦</h1>
         <p>Завантаження товарів...</p>
       </div>
@@ -100,7 +103,7 @@ const Birds: React.FC = () => {
 
   if (error)
     return (
-      <div className={styles.birds}>
+      <div className="birds">
         <h1>Пташки 🐦</h1>
         <p style={{ color: "red" }}>{error}</p>
         <p style={{ fontSize: "0.9rem", color: "#666" }}>Перевірте консоль (F12) для деталей.</p>
@@ -108,14 +111,25 @@ const Birds: React.FC = () => {
     );
 
   return (
-    <div className={styles.birds}>
+    <div className="birds">
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="toast">
+            <span>{toast.text}</span>
+            <button className="close-btn" onClick={() => removeToast(toast.id)}>
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
+
       <h1>Пташки 🐦</h1>
       <p>Все необхідне для ваших пернатих друзів!</p>
 
-      <div className={styles.birdsGrid}>
+      <div className="birds-grid">
         {products.length > 0 ? (
           products.map((product) => (
-            <div key={product.product_id} className={styles.birdCard}>
+            <div key={product.product_id} className="bird-card">
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""
@@ -125,9 +139,9 @@ const Birds: React.FC = () => {
                 alt={product.name}
               />
               <h3>{product.name}</h3>
-              <p className={styles.desc}>{product.description}</p>
-              <p className={styles.price}>{product.price} грн</p>
-              <button className={styles.btn} onClick={() => addToCart(product)}>
+              <p className="desc">{product.description}</p>
+              <p className="price">{product.price} грн</p>
+              <button className="btn" onClick={() => addToCart(product)}>
                 🛒 В кошик
               </button>
             </div>
@@ -136,15 +150,6 @@ const Birds: React.FC = () => {
           <p>Немає товарів у цій категорії 🐾</p>
         )}
       </div>
-
-      {showToast && (
-        <div className={`${styles.toast} ${styles.show}`}>
-          <span>{toastMessage}</span>
-          <button className={styles.closeBtn} onClick={() => setShowToast(false)}>
-            ✖
-          </button>
-        </div>
-      )}
     </div>
   );
 };

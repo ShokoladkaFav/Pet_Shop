@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from "react";
 import styles from "./Fish.module.css";
+import "./Fish.css"; // Імпорт стилів для тостів
 
 interface Product {
   product_id: number;
@@ -9,12 +10,16 @@ interface Product {
   image_url?: string;
 }
 
+interface ToastMessage {
+  id: number;
+  text: string;
+}
+
 const Fish: React.FC = () => {
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showToast, setShowToast] = useState(false);
-  const [toastKey, setToastKey] = useState(0);
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/Fish.php")
@@ -66,12 +71,10 @@ const Fish: React.FC = () => {
     }
 
     const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
-    const existingIndex = currentCart.findIndex(
-      (item: any) => item.product_id === product.product_id
-    );
+    const existing = currentCart.find((item: any) => item.product_id === product.product_id);
 
-    if (existingIndex !== -1) {
-      currentCart[existingIndex].quantity += 1;
+    if (existing) {
+      existing.quantity = Math.min(existing.quantity + 1, 100);
     } else {
       currentCart.push({ ...product, quantity: 1 });
     }
@@ -79,10 +82,16 @@ const Fish: React.FC = () => {
     localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
 
-    setToastKey((prev) => prev + 1);
-    setShowToast(true);
+    const newToast: ToastMessage = {
+      id: Date.now(),
+      text: `✅ ${product.name} додано у кошик!`,
+    };
+    setToasts((prev) => [...prev, newToast]);
+    setTimeout(() => removeToast(newToast.id), 5000);
+  };
 
-    setTimeout(() => setShowToast(false), 2000);
+  const removeToast = (id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
   };
 
   if (loading)
@@ -104,19 +113,24 @@ const Fish: React.FC = () => {
 
   return (
     <div className={styles.fish}>
-      {showToast && (
-        <div key={toastKey} className={styles.toast}>
-          ✅ Товар додано в кошик!
-        </div>
-      )}
+      <div className="toast-container">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="toast">
+            <span>{toast.text}</span>
+            <button className="close-btn" onClick={() => removeToast(toast.id)}>
+              ✕
+            </button>
+          </div>
+        ))}
+      </div>
 
       <h1>Рибки 🐠</h1>
       <p>Все для догляду за вашими акваріумними улюбленцями!</p>
 
       <div className={styles.fishGrid}>
         {products.length > 0 ? (
-          products.map((product, index) => (
-            <div key={index} className={styles.fishCard}>
+          products.map((product) => (
+            <div key={product.product_id} className={styles.fishCard}>
               <img
                 src={
                   product.image_url && product.image_url.trim() !== ""
@@ -128,11 +142,8 @@ const Fish: React.FC = () => {
               <h3>{product.name}</h3>
               <p className={styles.desc}>{product.description}</p>
               <p className={styles.price}>{product.price} грн</p>
-              <button
-                className={styles.btn}
-                onClick={() => addToCart(product)}
-              >
-                🛒 В кошик
+              <button className={styles.btn} onClick={() => addToCart(product)}>
+                В кошик
               </button>
             </div>
           ))

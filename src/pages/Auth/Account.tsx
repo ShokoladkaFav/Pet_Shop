@@ -57,7 +57,6 @@ const Account: React.FC = () => {
     setMessage("");
 
     // 🛡️ FRONTEND ЗАХИСТ ВІД SQL-ІН'ЄКЦІЙ (Basic)
-    // Перевіряємо на наявність небезпечних спецсимволів та SQL-команд
     const dangerousPattern = /('|"|;|--|\/\*|\*\/|xp_|DROP|SELECT|INSERT|UPDATE|DELETE|UNION)/i;
     
     if (dangerousPattern.test(address)) {
@@ -78,10 +77,15 @@ const Account: React.FC = () => {
        return;
     }
 
+    const token = sessionStorage.getItem("user_token");
+
     try {
       const response = await fetch("http://localhost/zoo-api/update_user.php", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        headers: { 
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}` // 🔑 Додаємо JWT токен
+        },
         body: JSON.stringify({
           user_id: user.user_id,
           address: address.trim(), // Trim прибирає зайві пробіли
@@ -111,6 +115,7 @@ const Account: React.FC = () => {
 
   const handleLogout = () => {
     sessionStorage.removeItem("user");
+    sessionStorage.removeItem("user_token");
     window.dispatchEvent(new Event("storage"));
     navigate("/login");
   };

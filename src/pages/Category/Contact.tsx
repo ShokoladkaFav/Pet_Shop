@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import "./Contact.css";
@@ -8,11 +9,16 @@ function Contact() {
   const [serviceType, setServiceType] = useState<string | null>(null);
   const [preview, setPreview] = useState<string | null>(null);
   const [showModal, setShowModal] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   // State для полів форми
   const [clientName, setClientName] = useState("");
   const [email, setEmail] = useState("");
   const [desc, setDesc] = useState("");
+  
+  // Специфічні поля
+  const [consultationFormat, setConsultationFormat] = useState("video"); // video | chat
+  const [petType, setPetType] = useState("dog"); // dog | cat | bird | fish | other
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -20,35 +26,100 @@ function Contact() {
     setServiceType(type);
   }, [location]);
 
+  // 🔥 Стиснення зображення перед завантаженням (щоб не забивати базу)
   const handleImageUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
       const reader = new FileReader();
-      reader.onloadend = () => setPreview(reader.result as string);
+      reader.onload = (readerEvent) => {
+        const img = new Image();
+        img.onload = () => {
+          // Створюємо Canvas для зміни розміру
+          const canvas = document.createElement("canvas");
+          const MAX_WIDTH = 800; // Максимальна ширина
+          const MAX_HEIGHT = 800; // Максимальна висота
+          let width = img.width;
+          let height = img.height;
+
+          // Зберігаємо пропорції
+          if (width > height) {
+            if (width > MAX_WIDTH) {
+              height *= MAX_WIDTH / width;
+              width = MAX_WIDTH;
+            }
+          } else {
+            if (height > MAX_HEIGHT) {
+              width *= MAX_HEIGHT / height;
+              height = MAX_HEIGHT;
+            }
+          }
+
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext("2d");
+          ctx?.drawImage(img, 0, 0, width, height);
+
+          // Конвертуємо в JPEG з якістю 0.7
+          const dataUrl = canvas.toDataURL("image/jpeg", 0.7);
+          setPreview(dataUrl);
+        };
+        img.src = readerEvent.target?.result as string;
+      };
       reader.readAsDataURL(file);
     }
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setLoading(true);
 
-    // 📡 СИМУЛЯЦІЯ ВІДПРАВКИ В БД (LocalStorage)
-    // Це дозволяє Ветеринару побачити заявку у WorkerDashboard
-    const newRequest = {
-      id: Date.now(), // унікальний ID
-      clientName: clientName,
+    // Пакуємо мета-дані в опис для збереження в БД
+    let finalDescription = desc;
+
+    if (serviceType === "consultation") {
+        const formatText = consultationFormat === "video" ? "Відео-дзвінок" : "Чат";
+        finalDescription = `[Формат: ${formatText}]\n${desc}`;
+    } else if (serviceType === "nutrition") {
+        const petMap: Record<string, string> = { 
+            dog: "Собака", cat: "Кіт", bird: "Пташка", fish: "Рибка", other: "Інше" 
+        };
+        finalDescription = `[Тварина: ${petMap[petType] || petType}]\n${desc}`;
+    } else if (serviceType === "diagnosis") {
+        let imgTag = "";
+        if (preview) {
+             // Додаємо фото як Base64 стрічку в спеціальних тегах
+             imgTag = `\n[ATTACHMENT]${preview}[/ATTACHMENT]`;
+        }
+        finalDescription = `[Тип: Діагностика по фото]${imgTag}\n${desc}`;
+    }
+
+    const payload = {
+      client_name: clientName,
       email: email,
       type: serviceType || "general",
-      desc: desc,
-      date: new Date().toISOString().split('T')[0],
-      status: "New"
+      description: finalDescription
     };
 
-    const existingRequests = JSON.parse(localStorage.getItem("vet_requests_db") || "[]");
-    existingRequests.push(newRequest);
-    localStorage.setItem("vet_requests_db", JSON.stringify(existingRequests));
+    try {
+      const response = await fetch("http://localhost/zoo-api/create_vet_request.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(payload)
+      });
+      
+      const result = await response.json();
 
-    setShowModal(true);
+      if (result.status === "success") {
+        setShowModal(true);
+      } else {
+        alert("Помилка при створенні заявки: " + result.message);
+      }
+    } catch (error) {
+      console.error(error);
+      alert("Сервер не відповідає. Перевірте з'єднання.");
+    } finally {
+      setLoading(false);
+    }
   };
 
   const handleCloseModal = () => {
@@ -60,8 +131,7 @@ function Contact() {
     <div className="contact">
       <h1>Онлайн-звернення до ветеринара 🩺</h1>
       <p>
-        Ви можете швидко отримати консультацію або допомогу — заповніть форму
-        нижче.
+        Заповніть форму, і ми допоможемо вашому улюбленцю.
       </p>
 
       {/* 🔹 Онлайн-консультація */}
@@ -69,7 +139,7 @@ function Contact() {
         <div className="form-box">
           <h2>Онлайн-консультація</h2>
           <p className="info-text">
-            Оберіть зручний формат консультації та введіть ваші дані.
+            Оберіть зручний формат спілкування (Відео/Чат).
           </p>
 
           <form className="vet-form" onSubmit={handleSubmit}>
@@ -86,10 +156,13 @@ function Contact() {
             />
 
             <label>Формат консультації</label>
-            <select required>
-              <option value="">Оберіть формат</option>
-              <option value="video">Відео-дзвінок</option>
-              <option value="chat">Чат</option>
+            <select 
+                required 
+                value={consultationFormat} 
+                onChange={(e) => setConsultationFormat(e.target.value)}
+            >
+              <option value="video">🎥 Відео-дзвінок</option>
+              <option value="chat">💬 Текстовий чат</option>
             </select>
 
             <label>Опишіть проблему</label>
@@ -99,20 +172,20 @@ function Contact() {
               value={desc} onChange={e => setDesc(e.target.value)}
             />
 
-            <button type="submit" className="btn">
-              Відправити запит
+            <button type="submit" className="btn" disabled={loading}>
+              {loading ? "Відправка..." : "Відправити запит (300 грн)"}
             </button>
           </form>
         </div>
       )}
 
-      {/* 🔹 Діагностика симптомів */}
+      {/* 🔹 Діагностика симптомів (Безкоштовно) */}
       {serviceType === "diagnosis" && (
         <div className="form-box">
+          <div className="badge-free">БЕЗКОШТОВНО 🔥</div>
           <h2>Діагностика симптомів 🐾</h2>
           <p className="info-text">
-            Завантажте фото вашої тваринки та коротко опишіть симптоми.
-            Послуга <strong>безкоштовна</strong>.
+            Завантажте фото проблеми. Лікар огляне його.
           </p>
 
           <form className="vet-form" onSubmit={handleSubmit}>
@@ -128,24 +201,28 @@ function Contact() {
               value={email} onChange={e => setEmail(e.target.value)}
             />
 
-            <label>Фото тваринки</label>
+            <label>Фото (макс 5MB)</label>
             <input type="file" accept="image/*" onChange={handleImageUpload} />
 
             {preview && (
               <div className="preview-box">
-                <img src={preview} alt="Прев’ю тваринки" />
+                <img src={preview} alt="Прев’ю" />
               </div>
             )}
 
             <label>Опис симптомів</label>
             <textarea
-              placeholder="Опишіть, що турбує вашу тваринку..."
+              placeholder="Опишіть, що сталося..."
               required
               value={desc} onChange={e => setDesc(e.target.value)}
             />
+            
+            <div className="warning-box">
+              ⚠️ <strong>Увага!</strong> Це безкоштовна послуга. Відповідь може надійти протягом <strong>1 місяця</strong>.
+            </div>
 
-            <button type="submit" className="btn">
-              Надіслати
+            <button type="submit" className="btn" disabled={loading}>
+              {loading ? "Відправка..." : "Надіслати на розгляд"}
             </button>
           </form>
         </div>
@@ -156,7 +233,7 @@ function Contact() {
         <div className="form-box">
           <h2>Консультація по харчуванню 🥦</h2>
           <p className="info-text">
-            Поради щодо правильного раціону для вашого улюбленця.
+            Підбір раціону для конкретного виду тварини.
           </p>
 
           <form className="vet-form" onSubmit={handleSubmit}>
@@ -173,39 +250,49 @@ function Contact() {
             />
 
             <label>Тип тваринки</label>
-            <select required>
-              <option value="">Оберіть тип</option>
-              <option value="dog">Собака</option>
-              <option value="cat">Кіт</option>
-              <option value="bird">Пташка</option>
-              <option value="fish">Рибка</option>
-              <option value="other">Інше</option>
+            <select required value={petType} onChange={(e) => setPetType(e.target.value)}>
+              <option value="dog">🐶 Собака</option>
+              <option value="cat">🐱 Кіт</option>
+              <option value="bird">🐦 Пташка</option>
+              <option value="fish">🐠 Рибка</option>
+              <option value="other">🐾 Інше</option>
             </select>
 
-            <label>Опишіть раціон тваринки</label>
+            <label>Поточний раціон</label>
             <textarea
-              placeholder="Вкажіть, чим зараз харчується ваш улюбленець..."
+              placeholder="Що тваринка їсть зараз? Корм чи натуралка?"
               required
               value={desc} onChange={e => setDesc(e.target.value)}
             />
 
-            <button type="submit" className="btn">
-              Надіслати запит
+            <button type="submit" className="btn" disabled={loading}>
+              {loading ? "Відправка..." : "Замовити раціон (250 грн)"}
             </button>
           </form>
         </div>
       )}
 
-      {/* 🟢 Модальне вікно підтвердження */}
+      {/* Generic fallback */}
+      {!serviceType && (
+         <div className="form-box">
+            <h2>Оберіть послугу</h2>
+            <p>Будь ласка, поверніться назад і виберіть тип звернення.</p>
+            <button className="btn" onClick={() => navigate('/category/vet')}>Назад</button>
+         </div>
+      )}
+
       {showModal && (
         <div className="modal-overlay">
           <div className="modal-box">
-            <h2>✅ Запит відправлено!</h2>
+            <h2>✅ Запит прийнято!</h2>
             <p>
-              Ваш запит успішно збережено в базу даних клініки. Ветеринар вже отримав сповіщення.
+              Ми отримали вашу заявку. 
+              {serviceType === 'diagnosis' 
+                ? " Відповідь надійде на пошту (черга до 1 місяця)." 
+                : " Лікар зв'яжеться з вами найближчим часом."}
             </p>
             <button onClick={handleCloseModal} className="btn">
-              Закрити
+              Зрозуміло
             </button>
           </div>
         </div>
