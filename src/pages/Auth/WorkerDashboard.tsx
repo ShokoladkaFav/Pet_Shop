@@ -34,6 +34,30 @@ interface StockItem {
   quantity: number;
 }
 
+// 🔥 Інтерфейс Замовлення (Updated for Doctrine compatibility)
+interface OrderItem {
+  id?: number;       // Doctrine default ID
+  order_id?: number; // Legacy ID
+  order_number: string;
+  inventory_id: number;
+  quantity: number;
+  price: string | number; 
+  subtotal: string | number;
+  order_date: string | { date: string }; // Doctrine returns DateTime object
+  status: string | null;
+  employee_id: number | null;
+}
+
+// Згруповане замовлення для відображення
+interface GroupedOrder {
+  order_number: string;
+  dateObj: Date;     // Date object for sorting
+  dateStr: string;   // Formatted string for display
+  status: string;
+  total_price: number;
+  items: OrderItem[];
+}
+
 // Інтерфейс повідомлень
 interface ToastMessage {
   id: number;
@@ -47,6 +71,7 @@ const WorkerDashboard: React.FC = () => {
   
   const [vetRequests, setVetRequests] = useState<VetRequest[]>([]);
   const [stock, setStock] = useState<StockItem[]>([]);
+  const [rawOrders, setRawOrders] = useState<OrderItem[]>([]); // Сирі дані з БД
   const [activeTab, setActiveTab] = useState("overview");
   const [allEmployees, setAllEmployees] = useState<Employee[]>([]);
 
@@ -70,8 +95,12 @@ const WorkerDashboard: React.FC = () => {
     password: ""
   });
 
-  // === STATE ДЛЯ МОДАЛЬНОГО ВІКНА ВИДАЛЕННЯ ===
-  const [requestToDelete, setRequestToDelete] = useState<number | null>(null);
+  // === STATE ДЛЯ МОДАЛЬНИХ ВІКОН ВИДАЛЕННЯ ===
+  const [requestToDelete, setRequestToDelete] = useState<number | null>(null); // Для вет. заявок
+  const [orderToDelete, setOrderToDelete] = useState<string | null>(null);     // Для замовлень
+  
+  // State для блокування UI під час оновлення статусу
+  const [updatingOrder, setUpdatingOrder] = useState<string | null>(null);
 
   // State for Toasts
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
@@ -100,7 +129,6 @@ const WorkerDashboard: React.FC = () => {
     try {
       const response = await fetch(url, { ...options, headers });
       
-      // Якщо сервер повернув HTML з помилкою (наприклад, PHP Warning), json() впаде
       const text = await response.text();
       let data;
       try {
@@ -108,7 +136,6 @@ const WorkerDashboard: React.FC = () => {
       } catch (err) {
         console.error("Server Non-JSON Response:", text);
         
-        // 🔥 РОЗПІЗНАВАННЯ ПОМИЛОК PHP 🔥
         if (text.includes("Undefined variable") && text.includes("$conn")) {
              throw new Error("PHP Error: Змінна $conn не знайдена. Перевірте підключення до БД у файлі PHP.");
         }
@@ -120,12 +147,11 @@ const WorkerDashboard: React.FC = () => {
       }
 
       if (!response.ok) {
-        throw new Error(data.message || `HTTP error ${response.status}`);
+        throw new Error(data.message || data.error || `HTTP error ${response.status}`);
       }
 
       return data;
     } catch (error: any) {
-        // 🔥 РОЗПІЗНАВАННЯ ПОМИЛОК CORS 🔥
         if (error.name === 'TypeError' && error.message === 'Failed to fetch') {
             throw new Error("CORS Помилка: Додайте Header 'Authorization' у файл PHP (див. інструкцію).");
         }
@@ -170,6 +196,7 @@ const WorkerDashboard: React.FC = () => {
     fetchStock();
     fetchEmployees();
     fetchVetRequests(); 
+    fetchOrders(); 
 
   }, [navigate]);
 
@@ -201,13 +228,85 @@ const WorkerDashboard: React.FC = () => {
     }
   };
 
-  // 🔥 Хелпер для нормалізації рядків (прибирає зайві пробіли та регістр)
+  const fetchOrders = async () => {
+      try {
+          // Використовуємо 'no-store' для запобігання кешування
+          const data = await authFetch("http://localhost/zoo-api/get_orders.php", {
+             cache: "no-store"
+          });
+          
+          if (Array.isArray(data)) {
+              setRawOrders(data);
+          } else if (data && (data.error || data.message)) {
+              const msg = data.error || data.message;
+              console.error("API Error (Orders):", msg);
+              addToast("error", `Помилка завантаження замовлень: ${msg}`);
+          } else {
+             console.warn("Unexpected orders format:", data);
+             setRawOrders([]); 
+          }
+      } catch (e: any) {
+          console.error("Orders fetch error:", e);
+          // Помилка вже була оброблена в authFetch, але тут ми додаємо контекст
+          if (!e.message.includes("Помилка завантаження замовлень")) {
+               addToast("error", `Не вдалося завантажити замовлення: ${e.message}`);
+          }
+      }
+  };
+
+  // 🔥 Helper to parse Doctrine dates
+  const parseDate = (dateVal: string | { date: string } | null) => {
+    try {
+        if (!dateVal) return new Date();
+        if (typeof dateVal === 'object' && dateVal.date) {
+            return new Date(dateVal.date);
+        }
+        return new Date(dateVal as string);
+    } catch (e) {
+        return new Date(); // Fallback to now
+    }
+  };
+
+  // 🔥 ГРУПУВАННЯ ЗАМОВЛЕНЬ
+  const groupedOrders: GroupedOrder[] = useMemo(() => {
+    const groups: Record<string, GroupedOrder> = {};
+
+    rawOrders.forEach(item => {
+        if (!item || !item.order_number) return; // Skip invalid records
+
+        // Safe number conversion
+        const subtotal = item.subtotal ? (typeof item.subtotal === 'string' ? parseFloat(item.subtotal) : item.subtotal) : 0;
+        
+        if (!groups[item.order_number]) {
+            const d = parseDate(item.order_date);
+            groups[item.order_number] = {
+                order_number: item.order_number,
+                dateObj: d,
+                dateStr: d.toLocaleString(),
+                status: item.status || "New",
+                total_price: 0,
+                items: []
+            };
+        }
+        groups[item.order_number].items.push(item);
+        groups[item.order_number].total_price += subtotal;
+    });
+
+    // Sort by date descending
+    return Object.values(groups).sort((a, b) => b.dateObj.getTime() - a.dateObj.getTime());
+  }, [rawOrders]);
+
+  // Знайти назву товару по ID 
+  const getProductName = (invId: number) => {
+      const item = stock.find(s => s.inventory_id == invId);
+      return item ? item.product_name : `ID Товару: ${invId}`;
+  };
+
   const normalizeStr = (str: string | null): string => {
     if (!str) return "";
     return str.trim().replace(/\s+/g, ' ').toLowerCase();
   };
 
-  // 🔥 Отримання унікальних значень для фільтрів (використовуємо Map для дедублікації)
   const uniqueCategories = useMemo(() => {
       const map = new Map<string, string>();
       stock.forEach(item => {
@@ -244,18 +343,15 @@ const WorkerDashboard: React.FC = () => {
       return Array.from(map.values()).sort();
   }, [stock]);
 
-  // 🔥 Логіка фільтрації та сортування складу
   const processedStock = useMemo(() => {
     let data = [...stock];
 
-    // 1. Пошук
     if (stockSearch) {
         data = data.filter(item => 
             item.product_name.toLowerCase().includes(stockSearch.toLowerCase())
         );
     }
 
-    // 2. Фільтри (порівнюємо нормалізовані значення)
     if (filterCategory !== "all") {
         data = data.filter(item => {
             const val = item.category || "Інше";
@@ -275,15 +371,11 @@ const WorkerDashboard: React.FC = () => {
         });
     }
 
-    // 3. Сортування
     data.sort((a, b) => {
         const aValue = a[sortConfig.key];
         const bValue = b[sortConfig.key];
-
-        // Обробка null значень
         if (aValue === null) return 1;
         if (bValue === null) return -1;
-
         if (aValue < bValue) return sortConfig.direction === 'asc' ? -1 : 1;
         if (aValue > bValue) return sortConfig.direction === 'asc' ? 1 : -1;
         return 0;
@@ -292,7 +384,6 @@ const WorkerDashboard: React.FC = () => {
     return data;
   }, [stock, stockSearch, filterCategory, filterLocation, filterSupplier, sortConfig]);
 
-  // Обробник кліку по заголовку таблиці для сортування
   const handleSort = (key: keyof StockItem) => {
     setSortConfig(current => ({
         key,
@@ -300,15 +391,13 @@ const WorkerDashboard: React.FC = () => {
     }));
   };
 
-  // 🔥 Крок 1: Відкрити модалку
+  // --- VET REQUEST HANDLERS ---
   const confirmDeleteVetRequest = (id: number) => {
     setRequestToDelete(id);
   };
 
-  // 🔥 Крок 2: Виконати видалення
   const performDeleteVetRequest = async () => {
     if (requestToDelete === null) return;
-    
     const id = requestToDelete;
 
     try {
@@ -327,7 +416,7 @@ const WorkerDashboard: React.FC = () => {
         console.error("Delete Error:", e);
         addToast("error", `${e.message}`);
     } finally {
-        setRequestToDelete(null); // Закрити модалку в будь-якому разі
+        setRequestToDelete(null); 
     }
   };
 
@@ -354,6 +443,70 @@ const WorkerDashboard: React.FC = () => {
         setVetRequests(oldRequests);
     }
   };
+
+  // --- ORDER HANDLERS (NEW) ---
+  
+  const handleOrderStatusChange = async (orderNumber: string, newStatus: string) => {
+    if (updatingOrder) return; // Запобігаємо подвійним клікам
+    setUpdatingOrder(orderNumber);
+
+    const oldOrders = [...rawOrders];
+    
+    // Оптимістичне оновлення UI
+    // 🔥 FIX: Використовуємо String() для порівняння, бо з БД можуть прийти числа
+    setRawOrders(prev => prev.map(o => 
+        String(o.order_number) === String(orderNumber) ? { ...o, status: newStatus } : o
+    ));
+
+    try {
+        const result = await authFetch("http://localhost/zoo-api/update_order_status.php", {
+            method: "POST",
+            body: JSON.stringify({ order_number: orderNumber, status: newStatus })
+        });
+        
+        if (result.status === "success") {
+           addToast("success", `Замовлення #${orderNumber}: статус змінено на ${newStatus}`);
+           // 🔥 FIX: Видалено fetchOrders() щоб уникнути мерехтіння і завантаження старих даних
+           // fetchOrders(); 
+        } else {
+            throw new Error(result.message || "Помилка оновлення");
+        }
+    } catch (e: any) {
+        addToast("error", "Не вдалося оновити статус: " + e.message);
+        setRawOrders(oldOrders); // Відкат при помилці
+    } finally {
+        setUpdatingOrder(null);
+    }
+  };
+
+  const confirmDeleteOrder = (orderNumber: string) => {
+      setOrderToDelete(orderNumber);
+  };
+
+  const performDeleteOrder = async () => {
+    if (!orderToDelete) return;
+
+    try {
+        const result = await authFetch("http://localhost/zoo-api/delete_order.php", {
+            method: "POST",
+            body: JSON.stringify({ order_number: orderToDelete })
+        });
+
+        if (result.status === "success") {
+            addToast("success", "Замовлення видалено");
+            // Видаляємо з локального стану всі товари цього замовлення
+            setRawOrders(prev => prev.filter(o => o.order_number !== orderToDelete));
+        } else {
+            throw new Error(result.message);
+        }
+    } catch (e: any) {
+        addToast("error", "Помилка видалення: " + e.message);
+    } finally {
+        setOrderToDelete(null);
+    }
+  };
+
+  // --- EMPLOYEE HANDLERS ---
 
   const handleCreateEmployee = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -416,7 +569,8 @@ const WorkerDashboard: React.FC = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
         case "New": return "#d97706";
-        case "In Progress": return "#2563eb";
+        case "Processing": return "#2563eb";
+        case "Sent": return "#059669";
         case "Done": return "#059669";
         case "Cancelled": return "#dc2626";
         default: return "#475569";
@@ -433,7 +587,6 @@ const WorkerDashboard: React.FC = () => {
     }
   };
 
-  // 🔥 Розпаковка даних з опису
   const parseDescription = (rawDesc: string) => {
     let text = rawDesc || "";
     const meta: { label: string; value: string }[] = [];
@@ -466,7 +619,6 @@ const WorkerDashboard: React.FC = () => {
 
   return (
     <div className="dashboard-container">
-      {/* TOAST NOTIFICATIONS */}
       <div className="dash-toast-container">
         {toasts.map(toast => (
           <div key={toast.id} className={`dash-toast ${toast.type}`}>
@@ -487,16 +639,25 @@ const WorkerDashboard: React.FC = () => {
           <button className={activeTab === "overview" ? "active" : ""} onClick={() => setActiveTab("overview")}>
             🏠 Огляд
           </button>
-          {(hasPermission(["veterinarian"])) && (
-            <button className={activeTab === "vet" ? "active" : ""} onClick={() => { setActiveTab("vet"); fetchVetRequests(); }}>
-              🩺 Заявки (Вет)
-            </button>
+          
+          {(hasPermission(["warehouse", "manager"])) && (
+             <button className={activeTab === "orders" ? "active" : ""} onClick={() => { setActiveTab("orders"); fetchOrders(); }}>
+               🛒 Замовлення
+             </button>
           )}
+
           {(hasPermission(["warehouse", "manager"])) && (
             <button className={activeTab === "stock" ? "active" : ""} onClick={() => setActiveTab("stock")}>
               📦 Склад і Товари
             </button>
           )}
+          
+          {(hasPermission(["veterinarian"])) && (
+            <button className={activeTab === "vet" ? "active" : ""} onClick={() => { setActiveTab("vet"); fetchVetRequests(); }}>
+              🩺 Заявки (Вет)
+            </button>
+          )}
+
           {(hasPermission(["manager", "admin"])) && (
             <button className={activeTab === "hr" ? "active" : ""} onClick={() => setActiveTab("hr")}>
               👥 Управління персоналом
@@ -523,8 +684,8 @@ const WorkerDashboard: React.FC = () => {
                 <p>{new Date().toLocaleDateString()}</p>
               </div>
               <div className="stat-card info">
-                <h4>🩺 Активні заявки</h4>
-                <p>{vetRequests.filter(r => r.status === "New" || r.status === "In Progress").length}</p>
+                <h4>🛒 Нові замовлення</h4>
+                <p>{groupedOrders.filter(o => o.status === 'New' || !o.status).length}</p>
               </div>
               <div className="stat-card warning">
                 <h4>📦 Товарів на складі</h4>
@@ -534,6 +695,107 @@ const WorkerDashboard: React.FC = () => {
           </div>
         )}
             
+        {/* === ЗАМОВЛЕННЯ (ORDERS) === */}
+        {activeTab === "orders" && hasPermission(["warehouse", "manager"]) && (
+          <div className="panel fade-in">
+             <div style={{display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "20px"}}>
+                <h2>🛒 Управління Замовленнями</h2>
+                <button className="action-btn" onClick={fetchOrders}>🔄 Оновити</button>
+             </div>
+             
+             {groupedOrders.length === 0 ? (
+                 <p style={{textAlign: "center", color: "#666", marginTop: "30px"}}>Замовлень поки немає 📭</p>
+             ) : (
+                <div style={{display: "flex", flexDirection: "column", gap: "20px"}}>
+                   {groupedOrders.map((order) => (
+                       <div key={order.order_number} style={{
+                           border: "1px solid #e2e8f0", 
+                           borderRadius: "12px", 
+                           padding: "20px", 
+                           backgroundColor: order.status === 'New' ? '#fffbeb' : 'white', 
+                           boxShadow: "0 2px 4px rgba(0,0,0,0.05)"
+                       }}>
+                           {/* HEADER ЗАМОВЛЕННЯ */}
+                           <div style={{display: "flex", justifyContent: "space-between", alignItems: "flex-start", borderBottom: "1px solid #eee", paddingBottom: "15px", marginBottom: "15px", flexWrap: "wrap", gap: "15px"}}>
+                               <div>
+                                   <div style={{display: 'flex', alignItems: 'center', gap: '10px'}}>
+                                     <h3 style={{margin: 0, color: "#1e293b"}}>Замовлення #{order.order_number}</h3>
+                                     <button className="action-btn" style={{fontSize: "0.8rem", padding: "2px 8px"}} onClick={() => window.print()}>🖨️ Друк</button>
+                                   </div>
+                                   <span style={{fontSize: "0.85rem", color: "#64748b"}}>{order.dateStr}</span>
+                               </div>
+                               
+                               <div style={{textAlign: "right", display: "flex", flexDirection: "column", alignItems: "flex-end", gap: "10px"}}>
+                                   <div style={{fontSize: "1.2rem", fontWeight: "bold", color: "#2e7d32"}}>
+                                       Всього: {order.total_price.toFixed(2)} грн
+                                   </div>
+                                   
+                                   <div style={{display: "flex", gap: "10px", alignItems: "center"}}>
+                                       <select 
+                                           value={order.status} 
+                                           onChange={(e) => handleOrderStatusChange(order.order_number, e.target.value)}
+                                           className="status-select"
+                                           disabled={updatingOrder === order.order_number}
+                                           style={{
+                                               padding: "6px 10px", 
+                                               borderRadius: "6px", 
+                                               border: `2px solid ${getStatusColor(order.status)}`,
+                                               fontWeight: "bold",
+                                               color: "#333",
+                                               cursor: updatingOrder === order.order_number ? "wait" : "pointer",
+                                               opacity: updatingOrder === order.order_number ? 0.6 : 1
+                                           }}
+                                       >
+                                           <option value="New">🟡 Нове</option>
+                                           <option value="Processing">🔵 В обробці</option>
+                                           <option value="Sent">🚚 Відправлено</option>
+                                           <option value="Done">🟢 Виконано</option>
+                                           <option value="Cancelled">🔴 Скасовано</option>
+                                       </select>
+
+                                       <button 
+                                            className="delete-icon-btn" 
+                                            title="Видалити все замовлення"
+                                            onClick={() => confirmDeleteOrder(order.order_number)}
+                                            style={{fontSize: "1.4rem", padding: "5px"}}
+                                       >
+                                           🗑️
+                                       </button>
+                                   </div>
+                               </div>
+                           </div>
+
+                           {/* ТАБЛИЦЯ ТОВАРІВ В ЗАМОВЛЕННІ */}
+                           <table className="data-table" style={{fontSize: "0.9rem"}}>
+                               <thead>
+                                   <tr style={{backgroundColor: "#f8fafc"}}>
+                                       <th>Товар (ID)</th>
+                                       <th>Кількість</th>
+                                       <th>Ціна</th>
+                                       <th>Сума</th>
+                                   </tr>
+                               </thead>
+                               <tbody>
+                                   {order.items.map((item, idx) => (
+                                       <tr key={idx}>
+                                           <td>
+                                               <strong>{getProductName(item.inventory_id)}</strong>
+                                               <br/><span style={{fontSize: "0.8rem", color: "#888"}}>ID: {item.inventory_id}</span>
+                                           </td>
+                                           <td>{item.quantity} шт.</td>
+                                           <td>{Number(item.price).toFixed(2)} грн</td>
+                                           <td>{Number(item.subtotal).toFixed(2)} грн</td>
+                                       </tr>
+                                   ))}
+                               </tbody>
+                           </table>
+                       </div>
+                   ))}
+                </div>
+             )}
+          </div>
+        )}
+
         {/* === СКЛАД (WAREHOUSE) === */}
         {activeTab === "stock" && hasPermission(["warehouse", "manager"]) && (
           <div className="panel fade-in">
@@ -778,16 +1040,31 @@ const WorkerDashboard: React.FC = () => {
         </div>
       )}
 
-      {/* === MODAL CONFIRM DELETE === */}
+      {/* === MODAL CONFIRM DELETE VET REQUEST === */}
       {requestToDelete !== null && (
         <div className="confirm-overlay">
             <div className="confirm-modal">
                 <span className="warning-icon">⚠️</span>
-                <h3 className="confirm-title">Видалити заявку?</h3>
+                <h3 className="confirm-title">Видалити вет. заявку?</h3>
                 <p className="confirm-text">Ви дійсно хочете видалити цю заявку? <br/> Ця дія є <strong>незворотною</strong>.</p>
                 <div className="confirm-actions">
                     <button className="btn-confirm-cancel" onClick={() => setRequestToDelete(null)}>Скасувати</button>
                     <button className="btn-confirm-delete" onClick={performDeleteVetRequest}>Так, видалити</button>
+                </div>
+            </div>
+        </div>
+      )}
+
+      {/* === MODAL CONFIRM DELETE ORDER (NEW) === */}
+      {orderToDelete !== null && (
+        <div className="confirm-overlay">
+            <div className="confirm-modal">
+                <span className="warning-icon">⚠️</span>
+                <h3 className="confirm-title">Видалити замовлення?</h3>
+                <p className="confirm-text">Ви дійсно хочете видалити замовлення <strong>#{orderToDelete}</strong>? <br/> Це видалить всі товари з цього замовлення.</p>
+                <div className="confirm-actions">
+                    <button className="btn-confirm-cancel" onClick={() => setOrderToDelete(null)}>Скасувати</button>
+                    <button className="btn-confirm-delete" onClick={performDeleteOrder}>Так, видалити</button>
                 </div>
             </div>
         </div>

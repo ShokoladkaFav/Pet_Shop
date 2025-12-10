@@ -1,43 +1,35 @@
 <?php
+// get_orders.php
 require 'db.php';
 
-$data = json_decode(file_get_contents("php://input"), true);
-
-if (empty($data)) {
-    echo json_encode(["status" => "error", "message" => "Кошик порожній"]);
-    exit;
-}
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
 
 try {
-    $entityManager->beginTransaction();
+    $orderRepository = $entityManager->getRepository(Order::class);
     
-    $orderNumber = "ORD" . time() . rand(100, 999);
-    $orderDate = new DateTime();
+    // Отримуємо всі замовлення, сортуємо за ID (останні знизу, але React пересортує)
+    // Або краще відсортувати на рівні запиту
+    $orders = $orderRepository->findBy([], ['id' => 'DESC']);
 
-    foreach ($data as $item) {
-        $invRepo = $entityManager->getRepository(Inventory::class);
-        $inventory = $invRepo->findOneBy(['product_id' => $item['product_id']]);
-
-        $invId = $inventory ? $inventory->inventory_id : 0;
-
-        $order = new Order();
-        $order->order_number = $orderNumber;
-        $order->inventory_id = $invId;
-        $order->quantity = $item['quantity'];
-        $order->price = $item['price'];
-        $order->subtotal = $item['price'] * $item['quantity'];
-        $order->order_date = $orderDate;
-        $order->status = 'New';
-
-        $entityManager->persist($order);
+    // Серіалізуємо масив об'єктів у масив масивів/JSON
+    $data = [];
+    foreach ($orders as $order) {
+        $data[] = [
+            'id' => $order->getId(), // або $order->id, залежно від вашого Entity
+            'order_number' => $order->order_number,
+            'inventory_id' => $order->inventory_id,
+            'quantity' => $order->quantity,
+            'price' => $order->price,
+            'subtotal' => $order->subtotal,
+            'order_date' => $order->order_date, // Doctrine поверне об'єкт DateTime
+            'status' => $order->status,
+        ];
     }
 
-    $entityManager->flush();
-    $entityManager->commit();
-    echo json_encode(["status" => "success", "message" => "Замовлення $orderNumber створено"]);
+    echo json_encode($data);
 
 } catch (Exception $e) {
-    $entityManager->rollback();
-    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
+    echo json_encode(["error" => $e->getMessage()]);
 }
 ?>
