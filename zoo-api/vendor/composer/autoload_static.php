@@ -37,6 +37,10 @@ class ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e
             'Psr\\Container\\' => 14,
             'Psr\\Cache\\' => 10,
         ),
+        'E' =>
+        array (
+            'Entities\\' => 9,
+        ),
         'D' =>
         array (
             'Doctrine\\Persistence\\' => 21,
@@ -108,6 +112,10 @@ class ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e
         array (
             0 => __DIR__ . '/..' . '/psr/cache/src',
         ),
+        'Entities\\' =>
+        array (
+            0 => __DIR__ . '/../..' . '/entities',
+        ),
         'Doctrine\\Persistence\\' =>
         array (
             0 => __DIR__ . '/..' . '/doctrine/persistence/src/Persistence',
@@ -146,10 +154,6 @@ class ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e
         ),
     );
 
-    public static $fallbackDirsPsr4 = array (
-        0 => __DIR__ . '/../..' . '/entities',
-    );
-
     public static $classMap = array (
         'Composer\\InstalledVersions' => __DIR__ . '/..' . '/composer/InstalledVersions.php',
         'Deprecated' => __DIR__ . '/..' . '/symfony/polyfill-php84/Resources/stubs/Deprecated.php',
@@ -163,7 +167,6 @@ class ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e
         return \Closure::bind(function () use ($loader) {
             $loader->prefixLengthsPsr4 = ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e::$prefixLengthsPsr4;
             $loader->prefixDirsPsr4 = ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e::$prefixDirsPsr4;
-            $loader->fallbackDirsPsr4 = ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e::$fallbackDirsPsr4;
             $loader->classMap = ComposerStaticInitc8e234b60aeaf8da706cacf530cd8f1e::$classMap;
 
         }, null, ClassLoader::class);

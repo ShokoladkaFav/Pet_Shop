@@ -1,3 +1,4 @@
+
 /* 🐶 Повноекранний контейнер сторінки */
 .dogs {
   width: 100vw;
@@ -48,15 +49,13 @@
 .dog-card {
   background: #fff;
   border-radius: 16px;
-  padding: 16px;
+  padding: 20px;
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
   transition: transform 0.35s ease, box-shadow 0.35s ease;
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  height: 460px; /* ✅ Фіксована висота для вирівнювання */
-  position: relative;
-  overflow: hidden;
+  height: 520px;
+  box-sizing: border-box;
 }
 
 .dog-card:hover {
@@ -70,12 +69,7 @@
   height: 190px;
   object-fit: cover;
   border-radius: 14px;
-  margin-bottom: 10px;
-  transition: transform 0.3s ease;
-}
-
-.dog-card:hover img {
-  transform: scale(1.05);
+  margin-bottom: 12px;
 }
 
 /* 📝 Назва товару */
@@ -85,6 +79,10 @@
   color: #333;
   font-weight: 600;
   text-align: center;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 /* 📄 Опис */
@@ -94,139 +92,65 @@
   line-height: 1.4;
   text-align: center;
   flex-grow: 1;
-  margin-bottom: 10px;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
-/* 💸 Ціна */
-.price {
-  font-size: 1.15rem;
-  color: #2e7d32;
-  font-weight: bold;
-  margin-bottom: 50px; /* ✅ Відступ для кнопки */
-}
-
-/* 🛒 Кнопка - Абсолютне позиціонування */
-.dog-card .btn {
-  display: block;
-  width: 75%; /* ✅ Компактна ширина */
-  padding: 8px 0;
-  background: linear-gradient(135deg, #43a047);
-  color: white;
-  font-weight: 600;
-  font-size: 0.9rem;
-  border-radius: 8px;
-  text-decoration: none;
-  text-align: center;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
-  border: none;
-  cursor: pointer;
-  position: absolute; /* ✅ Фіксація внизу картки */
-  bottom: 16px;
-  left: 50%;
-  transform: translateX(-50%);
-}
-
-.dog-card .btn:hover {
-  background: linear-gradient(135deg, #2e7d32);
-  transform: translateX(-50%) translateY(-3px);
-  box-shadow: 0 6px 14px rgba(46, 125, 50, 0.35);
-}
-
-.dog-card .btn:active {
-  transform: translateX(-50%) scale(0.97);
-  box-shadow: 0 3px 8px rgba(46, 125, 50, 0.25);
-}
-
-/* 🔔 Toast-повідомлення */
-.toast-container {
-  position: fixed;
-  top: 25px;
-  left: 25px;
+/* 💸 Ціна та Статус */
+.price-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
-  z-index: 2000;
-}
-
-.toast {
-  background: linear-gradient(135deg, #43a047, #2e7d32);
-  color: #fff;
-  padding: 12px 18px;
-  border-radius: 10px;
-  box-shadow: 0 4px 12px rgba(46, 125, 50, 0.25);
-  display: flex;
   align-items: center;
-  justify-content: space-between;
-  min-width: 280px;
+  margin-bottom: 15px;
+}
+
+.dogs .price {
+  font-size: 1.4rem;
+  color: #333;
+  font-weight: 400; /* Не жирний */
+  margin: 0;
+}
+
+.stock-status {
+  font-size: 0.8rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 5px;
+}
+
+.stock-status.in-stock { color: #2e7d32; }
+.stock-status.out-of-stock { color: #d32f2f; }
+
+/* 🛒 Кнопка */
+.dog-card .btn {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(135deg, #43a047, #2e7d32);
+  color: white;
+  font-weight: 600;
   font-size: 0.95rem;
-  animation: slideInLeft 0.4s ease forwards;
-}
-
-.toast span {
-  flex-grow: 1;
-  margin-right: 10px;
-}
-
-.close-btn {
-  background: none;
+  border-radius: 10px;
   border: none;
-  color: #fff;
-  font-weight: bold;
-  font-size: 1rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
 }
 
-.close-btn:hover {
-  transform: scale(1.2);
+.dog-card .btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  transform: translateY(-2px);
 }
 
-/* 🌈 Анімації */
+.dog-card .btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
-}
-
-@keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 📱 Адаптивність */
-@media (max-width: 768px) {
-  .dog-card {
-    height: 420px;
-  }
-  .dog-card img {
-    height: 170px;
-  }
-  .dog-card .btn {
-    width: 85%;
-    font-size: 0.85rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .dog-card {
-    height: 380px;
-  }
-  .dog-card img {
-    height: 150px;
-  }
-  .dog-card .btn {
-    width: 90%;
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }

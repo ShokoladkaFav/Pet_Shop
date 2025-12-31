@@ -7,7 +7,7 @@
   font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
 }
 
-/* === SIDEBAR (Dark Theme) === */
+/* === SIDEBAR (FIXED/STICKY) === */
 .admin-sidebar {
   width: 260px;
   background-color: #212529;
@@ -18,10 +18,14 @@
   flex-shrink: 0;
   box-shadow: 4px 0 10px rgba(0,0,0,0.1);
   box-sizing: border-box;
+  height: 100vh;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .admin-header {
-  margin-bottom: 40px;
+  margin-bottom: 30px;
   padding-bottom: 20px;
   border-bottom: 1px solid #495057;
   text-align: center;
@@ -30,7 +34,7 @@
 .admin-header h2 {
   margin: 0;
   font-size: 1.5rem;
-  color: #ffc107; /* Жовтий акцент */
+  color: #ffc107;
 }
 
 .admin-header p {
@@ -44,49 +48,92 @@
   flex-direction: column;
   gap: 10px;
   flex-grow: 1;
+  overflow-y: auto;
 }
 
 .admin-nav button {
   background: transparent;
-  border: none;
+  border: 1px solid transparent !important; /* Блокуємо рамку з index.css */
   color: #ced4da;
   padding: 12px 15px;
   text-align: left;
   font-size: 1rem;
   cursor: pointer;
-  border-radius: 8px;
-  transition: all 0.2s;
+  border-radius: 8px !important;
+  transition: background 0.2s ease, color 0.2s ease;
   display: flex;
   align-items: center;
   gap: 10px;
+  outline: none;
+  box-shadow: none !important;
 }
 
 .admin-nav button:hover {
   background-color: #343a40;
   color: white;
-  transform: translateX(5px);
+  transform: none !important; /* Прибираємо зміщення */
+  border-color: transparent !important;
 }
 
 .admin-nav button.active {
   background-color: #ffc107;
   color: #212529;
   font-weight: bold;
+  border-color: #ffc107 !important;
+}
+
+/* Секція кнопок внизу бічної панелі */
+.admin-sidebar-footer {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-top: 15px;
+  border-top: 1px solid #343a40;
 }
 
 .back-dashboard-btn {
-  margin-top: auto;
   background-color: #0d6efd;
   color: white;
-  border: none;
+  border: 1px solid transparent !important;
   padding: 12px;
-  border-radius: 8px;
+  border-radius: 8px !important;
   cursor: pointer;
   font-weight: 600;
-  transition: background 0.2s;
+  transition: all 0.2s ease;
+  text-align: center;
+  display: block;
+  width: 100%;
+  box-sizing: border-box;
 }
 
 .back-dashboard-btn:hover {
   background-color: #0b5ed7;
+  color: white;
+  transform: none !important;
+  border-radius: 8px !important; /* Гарантуємо закруглення */
+  border-color: #0d6efd !important;
+}
+
+/* Кнопка виходу в адмінці */
+.admin-logout-btn {
+  background-color: #495057;
+  color: white;
+  border: 1px solid transparent !important;
+  padding: 10px;
+  border-radius: 8px !important;
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.2s ease;
+  text-align: center;
+  box-sizing: border-box;
+}
+
+.admin-logout-btn:hover {
+  background-color: #dc3545;
+  color: white;
+  transform: none !important;
+  border-radius: 8px !important;
 }
 
 /* === CONTENT AREA === */
@@ -114,6 +161,38 @@
   margin-bottom: 25px;
 }
 
+/* === FILTERS BAR (EMPLOYEES) - Updated to match Stock Controls === */
+.admin-filters-bar {
+    display: grid;
+    grid-template-columns: 100px 1.5fr 1.5fr 1fr;
+    gap: 15px;
+    background: #f8fafc; /* Як у Складу */
+    padding: 15px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+    border: 1px solid #e2e8f0; /* Як у Складу */
+    box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+}
+
+.filter-input-compact, 
+.filter-select-compact {
+    padding: 10px 14px;
+    border: 1px solid #cbd5e1;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    width: 100%;
+    box-sizing: border-box;
+    background-color: white;
+    transition: all 0.2s ease;
+}
+
+.filter-input-compact:focus, 
+.filter-select-compact:focus {
+    outline: none;
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
 /* === TABLES === */
 .admin-table {
   width: 100%;
@@ -127,6 +206,16 @@
   text-align: left;
   color: #495057;
   font-weight: 700;
+}
+
+.sortable-header {
+  cursor: pointer;
+  user-select: none;
+  transition: background 0.2s ease;
+}
+
+.sortable-header:hover {
+  background-color: #dee2e6 !important;
 }
 
 .admin-table td {
@@ -168,7 +257,6 @@
 .btn-delete { background-color: #dc3545; color: white; }
 .btn-edit { background-color: #ffc107; color: black; }
 .btn-password { background-color: #6c757d; color: white; }
-.btn-password:hover { background-color: #495057; }
 
 /* === PRODUCT FORM === */
 .product-form-container {
@@ -193,7 +281,7 @@
 .form-group select, 
 .form-group textarea {
   width: 100%;
-  padding: 10px 12px; /* Повернув комфортний відступ */
+  padding: 10px 12px;
   border: 1px solid #ced4da;
   border-radius: 6px;
   font-size: 0.95rem;
@@ -213,7 +301,6 @@
   min-height: 80px;
 }
 
-/* Side-by-side inputs with wrap support */
 .form-row {
   display: flex;
   gap: 20px;
@@ -240,7 +327,7 @@
   background-color: #157347;
 }
 
-/* === MODAL (ADMIN) === */
+/* === MODAL === */
 .modal-overlay-admin {
   position: fixed;
   top: 0; left: 0;
@@ -257,11 +344,10 @@
 
 .modal-admin {
   background: white;
-  /* 🔥 Збільшуємо відступи з боків, щоб візуально скоротити поля вводу */
   padding: 30px 50px; 
   border-radius: 16px;
   width: 100%; 
-  max-width: 480px; /* Трохи ширше, щоб відступи не з'їли весь контент */
+  max-width: 480px;
   max-height: 90vh; 
   overflow-y: auto; 
   overflow-x: hidden !important;
@@ -311,7 +397,6 @@
 
 .cancel-btn:hover {
   background-color: #e9ecef;
-  border-color: #adb5bd;
 }
 
 .save-btn {
@@ -337,13 +422,7 @@
 
 @media (max-width: 768px) {
   .admin-container { flex-direction: column; }
-  .admin-sidebar { width: 100%; }
+  .admin-sidebar { width: 100%; height: auto; position: relative; }
   .product-form-container { grid-template-columns: 1fr; }
-  .modal-actions { flex-direction: column-reverse; } 
-  .cancel-btn, .save-btn { width: 100%; text-align: center; }
-  
-  .modal-admin {
-    padding: 25px 20px; /* На мобільному менші відступи */
-    max-width: 90%;
-  }
+  .admin-filters-bar { grid-template-columns: 1fr; }
 }

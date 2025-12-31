@@ -1,27 +1,20 @@
 <?php
-require 'db.php';
 header("Access-Control-Allow-Origin: *");
-header("Access-Control-Allow-Headers: Content-Type");
-header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Headers: *");
+header("Content-Type: application/json");
+require_once 'db.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-if (empty($data['order_number'])) {
-    echo json_encode(["status" => "error", "message" => "Order Number missing"]);
+if (!isset($data['order_number'])) {
+    echo json_encode(["status" => "error", "message" => "Номер замовлення відсутній"]);
     exit;
 }
 
 try {
-    $orderRepo = $entityManager->getRepository(Order::class);
-    $orders = $orderRepo->findBy(['order_number' => $data['order_number']]);
-
-    foreach ($orders as $order) {
-        $entityManager->remove($order);
-    }
-    
-    $entityManager->flush();
-
-    echo json_encode(["status" => "success", "message" => "Deleted " . count($orders) . " items"]);
+    $stmt = $conn->prepare("DELETE FROM orders WHERE order_number = ?");
+    $stmt->execute([$data['order_number']]);
+    echo json_encode(["status" => "success"]);
 } catch (Exception $e) {
     echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }

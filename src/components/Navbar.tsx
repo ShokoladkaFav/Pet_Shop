@@ -8,7 +8,7 @@ interface User {
   id?: number;
   username: string;
   email: string;
-  isEmployee?: boolean; // Флаг для співробітників
+  isEmployee?: boolean;
 }
 
 function Navbar() {
@@ -16,29 +16,31 @@ function Navbar() {
   const [user, setUser] = useState<User | null>(null);
   const navigate = useNavigate();
 
-  // 🛠 Допоміжна функція для отримання правильного ключа кошика
-  const getCartKey = (currentUser: User | null) => {
-    if (currentUser && !currentUser.isEmployee) {
-      const uid = currentUser.user_id || currentUser.id;
-      return uid ? `cart_${uid}` : "cart";
+  // 🛠 Функція для отримання унікального ключа кошика (спільна для всього додатка)
+  const getCartKey = () => {
+    const storedUser = sessionStorage.getItem("user");
+    if (storedUser) {
+      try {
+        const parsed = JSON.parse(storedUser);
+        const uid = parsed.user_id || parsed.id;
+        if (uid) return `cart_${uid}`;
+      } catch (e) {}
     }
-    
-    // Для працівників або гостей використовуємо гостьову сесію або загальний кошик
+
     let guestId = sessionStorage.getItem("guest_session_id");
     if (!guestId) {
-      guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+      guestId = "guest_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
       sessionStorage.setItem("guest_session_id", guestId);
     }
     return `cart_${guestId}`;
   };
 
-  // 🔄 Оновлення кількості товарів у кошику
-  const updateCartCount = (currentUser: User | null) => {
+  const updateCartCount = () => {
     try {
-      const key = getCartKey(currentUser);
+      const key = getCartKey();
       const cart = JSON.parse(localStorage.getItem(key) || "[]");
       const total = cart.reduce(
-        (sum: number, item: any) => sum + (item.quantity || 0),
+        (sum: number, item: any) => sum + (Number(item.quantity) || 0),
         0
       );
       setCartCount(total);
@@ -47,9 +49,7 @@ function Navbar() {
     }
   };
 
-  // 🧭 Завантаження користувача АБО працівника з sessionStorage
   const checkUser = () => {
-    // 1. Перевіряємо звичайного юзера
     const storedUser = sessionStorage.getItem("user");
     if (storedUser && storedUser !== "undefined") {
       try {
@@ -59,28 +59,12 @@ function Navbar() {
       } catch (e) {}
     }
 
-    // 2. Перевіряємо працівника
     const storedEmployee = sessionStorage.getItem("employee");
     if (storedEmployee && storedEmployee !== "undefined") {
        try {
          const parsedEmp = JSON.parse(storedEmployee);
-         
-         // 🛠 Fix: Формуємо ім'я з first_name/last_name (структура БД)
-         let empName = "";
-         if (parsedEmp.first_name) {
-             empName = `${parsedEmp.first_name} ${parsedEmp.last_name || ''}`.trim();
-         } else if (parsedEmp.name) {
-             empName = parsedEmp.name;
-         } else {
-             empName = "Співробітник";
-         }
-
-         // Адаптуємо під інтерфейс User для відображення
-         const empUser: User = {
-           username: empName + " (Staff)",
-           email: parsedEmp.work_email || "",
-           isEmployee: true
-         };
+         let empName = parsedEmp.first_name ? `${parsedEmp.first_name} ${parsedEmp.last_name || ''}`.trim() : (parsedEmp.name || "Співробітник");
+         const empUser: User = { username: empName + " (Staff)", email: parsedEmp.work_email || "", isEmployee: true };
          setUser(empUser);
          return empUser;
        } catch (e) {}
@@ -90,36 +74,39 @@ function Navbar() {
     return null;
   };
 
-  // 🚪 Вихід із акаунту
   const handleLogout = () => {
     sessionStorage.removeItem("user");
-    sessionStorage.removeItem("user_token"); // Видаляємо токен користувача
+    sessionStorage.removeItem("user_token");
     sessionStorage.removeItem("employee");
-    sessionStorage.removeItem("employee_token"); // Видаляємо токен працівника
+    sessionStorage.removeItem("employee_token");
     setUser(null);
-    updateCartCount(null);
+    updateCartCount();
     navigate("/login");
   };
 
   useEffect(() => {
-    const currentUser = checkUser();
-    updateCartCount(currentUser);
+    checkUser();
+    updateCartCount();
 
-    const handleStorageChange = () => {
-      const updatedUser = checkUser();
-      updateCartCount(updatedUser);
+    // Слухаємо подію 'storage' (вона спрацьовує при змінах в інших вкладках АБО при ручному виклику в поточному вікні)
+    const handleCartUpdate = () => {
+      checkUser();
+      updateCartCount();
     };
 
-    window.addEventListener("storage", handleStorageChange);
-    return () => window.removeEventListener("storage", handleStorageChange);
+    window.addEventListener("storage", handleCartUpdate);
+    // Додаємо власну подію для миттєвого оновлення в межах однієї вкладки
+    window.addEventListener("cart-updated", handleCartUpdate);
+
+    return () => {
+      window.removeEventListener("storage", handleCartUpdate);
+      window.removeEventListener("cart-updated", handleCartUpdate);
+    };
   }, []);
 
   return (
     <nav className="navbar">
-      <Link to="/" className="logo">
-        ZooMarket
-      </Link>
-
+      <Link to="/" className="logo">ZooMarket</Link>
       <ul className="nav-links">
         <li><Link to="/">Головна</Link></li>
         <li><Link to="/products">Товари</Link></li>
@@ -132,33 +119,20 @@ function Navbar() {
           </Link>
         </li>
       </ul>
-
-      {/* 🔐 Авторизаційна секція */}
       <div className="auth-section">
         {user ? (
           <div className="user-menu">
             {user.isEmployee ? (
-                <Link to="/worker-dashboard" className="username" style={{color: '#ffcc80'}}>
-                   💼 {user.username}
-                </Link>
+                <Link to="/worker-dashboard" className="username" style={{color: '#ffcc80'}}>💼 {user.username}</Link>
             ) : (
-                <Link to="/account" className="username">
-                   👋 {user.username}
-                </Link>
+                <Link to="/account" className="username">👋 {user.username}</Link>
             )}
-            
-            <button onClick={handleLogout} className="logout-btn">
-              Вийти
-            </button>
+            <button onClick={handleLogout} className="logout-btn">Вийти</button>
           </div>
         ) : (
           <div className="auth-buttons">
-            <button onClick={() => navigate("/login")} className="login-btn">
-              Увійти
-            </button>
-            <button onClick={() => navigate("/register")} className="register-btn">
-              Реєстрація
-            </button>
+            <button onClick={() => navigate("/login")} className="login-btn">Увійти</button>
+            <button onClick={() => navigate("/register")} className="register-btn">Реєстрація</button>
           </div>
         )}
       </div>

@@ -40,7 +40,7 @@
   box-sizing: border-box;
 }
 
-/* 🟩 Група для пароля (щоб розмістити кнопку всередині) */
+/* 🟩 Група для пароля */
 .password-group {
   position: relative;
   width: 100%;
@@ -48,26 +48,37 @@
   align-items: center;
 }
 
+/* 👁️ Кнопка-око (виправлено розмір рамки) */
 .password-toggle-btn {
   position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: transparent !important; /* Примусово прибираємо фон */
+  border: none !important;           /* Примусово прибираємо рамку */
+  outline: none !important;          /* Прибираємо контур при фокусі */
+  padding: 0 !important;             /* Прибираємо внутрішні відступи */
+  width: 34px !important;            /* Компактна ширина */
+  height: 34px !important;           /* Компактна висота */
   cursor: pointer;
-  font-size: 1.2rem;
-  padding: 0;
+  font-size: 1.3rem;
   color: #2e7d32;
   opacity: 0.7;
-  transition: opacity 0.3s;
+  transition: opacity 0.3s, transform 0.2s;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
-  z-index: 2;
+  z-index: 5;
+  box-shadow: none !important;       /* Прибираємо тіні */
 }
 
 .password-toggle-btn:hover {
   opacity: 1;
+  transform: translateY(-50%) scale(1.1);
+}
+
+.password-toggle-btn:focus {
+  outline: none !important;
 }
 
 /* 🟩 Поля вводу */
@@ -83,10 +94,10 @@
   background-color: #ffffff;
 }
 
-/* Додатковий відступ справа для пароля, щоб текст не наліз на око */
+/* Додатковий відступ справа для пароля */
 .auth-form input[type="password"],
 .auth-form input.password-input {
-  padding-right: 45px;
+  padding-right: 48px;
 }
 
 .auth-form input:focus {
@@ -140,7 +151,7 @@
   color: #388e3c;
 }
 
-/* 🟩 Анімація */
+/* 🌈 Анімація */
 @keyframes fadeIn {
   from {
     opacity: 0;

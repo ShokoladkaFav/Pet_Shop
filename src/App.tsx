@@ -1,3 +1,4 @@
+
 import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
 import Navbar from "./components/Navbar";
 import Home from "./pages/Home";
@@ -24,7 +25,7 @@ import Register from "./pages/Auth/Register";
 import Account from "./pages/Auth/Account";
 import EmployeeLogin from "./pages/Auth/EmployeeLogin";
 import WorkerDashboard from "./pages/Auth/WorkerDashboard";
-import AdminPanel from "./pages/Auth/AdminPanel"; // 🆕 Імпорт
+import AdminPanel from "./pages/Auth/AdminPanel";
 
 function App() {
   return (
@@ -55,7 +56,7 @@ function App() {
         <Route path="/account" element={<Account />} />
         <Route path="/employee-login" element={<EmployeeLogin />} />
         <Route path="/worker-dashboard" element={<WorkerDashboard />} />
-        <Route path="/admin-panel" element={<AdminPanel />} /> {/* 🆕 Маршрут */}
+        <Route path="/admin-panel" element={<AdminPanel />} />
 
         {/* ❌ Сторінка 404 */}
         <Route path="*" element={<NotFound />} />

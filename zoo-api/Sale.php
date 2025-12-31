@@ -1,38 +1,38 @@
 <?php
-require 'db.php';
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: *");
+header("Content-Type: application/json; charset=UTF-8");
+
+require_once 'db.php';
+use Entities\Sale;
+use Entities\Product;
 
 try {
-    // 1. Вкажіть тут ID товарів, які ви хочете бачити на сторінці Акцій.
-    // Переконайтеся, що товари з такими ID існують у вашій базі даних!
-    $ids = [1, 2, 3, 4,]; 
+    /** @var \Doctrine\ORM\EntityManager $entityManager */
+    $salesRepository = $entityManager->getRepository(Sale::class);
+    $activeSales = $salesRepository->findAll();
 
-    $repo = $entityManager->getRepository(Product::class);
-    
-    // Використовуємо findBy - це простіший і надійніший спосіб 
-    // отримати товари за списком ID (Doctrine сама зробить запит WHERE IN)
-    $products = $repo->findBy(['product_id' => $ids]);
+    $result = [];
 
-    $saleProducts = [];
-    foreach ($products as $p) {
-        $originalPrice = (float)$p->price;
-        // Розраховуємо знижку 20%
-        $discountedPrice = round($originalPrice * 0.80, 2);
+    foreach ($activeSales as $sale) {
+        $product = $sale->product;
+        if (!$product) continue;
 
-        $saleProducts[] = [
-            'product_id' => $p->product_id,
-            'name' => $p->name,
-            'description' => $p->description,
-            'image_url' => $p->image_url,
-            'price' => $discountedPrice,       // Нова ціна (червона)
-            'original_price' => $originalPrice // Стара ціна (перекреслена)
+        $result[] = [
+            'product_id'     => (int)$sale->product_id,
+            'name'           => $product->name,
+            'category'       => $product->category,
+            'sale_price'     => (float)$sale->sale_price,
+            'original_price' => (float)$sale->original_price,
+            'description'    => $product->description,
+            'image_url'      => $product->image_url,
+            'quantity'       => 10 // Або підтягніть реальний залишок зі складу
         ];
     }
 
-    // Якщо нічого не знайшли (наприклад, ID невірні), повертаємо пустий масив
-    echo json_encode($saleProducts);
-
-} catch (Exception $e) {
+    echo json_encode($result, JSON_UNESCAPED_UNICODE);
+} catch (\Exception $e) {
     http_response_code(500);
-    echo json_encode(["error" => "Server Error: " . $e->getMessage()]);
+    echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }
 ?>

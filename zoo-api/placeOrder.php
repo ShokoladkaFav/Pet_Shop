@@ -1,35 +1,11 @@
 <?php
-// get_orders.php
-require 'db.php';
+// ... (початок файлу з CORS та db.php)
+$data = json_decode(file_get_contents("php://input"), true);
+$orderNumber = "ORD" . time() . rand(10, 99);
 
-header("Access-Control-Allow-Origin: *");
-header("Content-Type: application/json; charset=UTF-8");
-
-try {
-    $orderRepository = $entityManager->getRepository(Order::class);
-    
-    // Отримуємо всі замовлення, сортуємо за ID (останні знизу, але React пересортує)
-    // Або краще відсортувати на рівні запиту
-    $orders = $orderRepository->findBy([], ['id' => 'DESC']);
-
-    // Серіалізуємо масив об'єктів у масив масивів/JSON
-    $data = [];
-    foreach ($orders as $order) {
-        $data[] = [
-            'id' => $order->getId(), // або $order->id, залежно від вашого Entity
-            'order_number' => $order->order_number,
-            'inventory_id' => $order->inventory_id,
-            'quantity' => $order->quantity,
-            'price' => $order->price,
-            'subtotal' => $order->subtotal,
-            'order_date' => $order->order_date, // Doctrine поверне об'єкт DateTime
-            'status' => $order->status,
-        ];
-    }
-
-    echo json_encode($data);
-
-} catch (Exception $e) {
-    echo json_encode(["error" => $e->getMessage()]);
+foreach ($data as $item) {
+    $stmt = $conn->prepare("INSERT INTO orders (order_number, inventory_id, quantity, price, subtotal, order_date, status) VALUES (?, ?, ?, ?, ?, NOW(), 'New')");
+    $stmt->execute([$orderNumber, $item['product_id'], $item['quantity'], $item['price'], $item['price'] * $item['quantity']]);
 }
+echo json_encode(["status" => "success", "order_number" => $orderNumber]);
 ?>

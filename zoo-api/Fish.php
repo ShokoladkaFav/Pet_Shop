@@ -1,38 +1,17 @@
 <?php
-require 'db.php';
-
+header('Access-Control-Allow-Origin: *');
+header('Content-Type: application/json');
+require_once 'db.php';
 try {
-    $qb = $entityManager->createQueryBuilder();
-
-    $qb->select('p')
-       ->from(Product::class, 'p')
-       ->where('p.name LIKE :search1')
-       ->orWhere('p.description LIKE :search1')
-       ->orWhere('p.name LIKE :search2')
-       ->orWhere('p.name LIKE :search3')
-       ->orWhere('p.category = :cat1')
-       ->orWhere('p.category = :cat2')
-       ->setParameter('search1', '%риб%')
-       ->setParameter('search2', '%акваріум%')
-       ->setParameter('search3', '%fish%')
-       ->setParameter('cat1', 'fish')
-       ->setParameter('cat2', 'Обладнання');
-
-    $products = $qb->getQuery()->getResult();
-
-    $result = array_map(function($p) {
-        return [
-            'product_id' => $p->product_id,
-            'name' => $p->name,
-            'price' => $p->price,
-            'description' => $p->description,
-            'image_url' => $p->image_url
-        ];
-    }, $products);
-
-    echo json_encode($result);
-
+    $stmt = $conn->prepare("SELECT p.*, i.quantity 
+                            FROM product p 
+                            LEFT JOIN inventory i ON p.product_id = i.product_id 
+                            WHERE p.category = 'fish' OR p.name LIKE '%риб%' OR p.description LIKE '%риб%' 
+                            ORDER BY p.product_id DESC");
+    $stmt->execute();
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);
 }
 ?>

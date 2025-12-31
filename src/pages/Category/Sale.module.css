@@ -1,9 +1,8 @@
 
-/* 🎉 Повноекранний контейнер */
 .sale {
   width: 100vw;
   min-height: calc(100vh - 60px);
-  padding: 60px 20px 80px;
+  padding: 100px 20px 100px;
   background: linear-gradient(135deg, #fff0f5, #ffe6cc, #fff5cc);
   box-sizing: border-box;
   animation: fadeIn 0.8s ease-in-out;
@@ -13,160 +12,187 @@
   text-align: center;
 }
 
-/* 🧨 Заголовок */
 .sale h1 {
-  font-size: 2.6rem;
+  font-size: 3.2rem;
   font-weight: 800;
-  margin-bottom: 10px;
+  margin-bottom: 14px;
+  /* Збільшуємо відстань, щоб "і" та "ї" були чітко розділені */
+  letter-spacing: 4px;
+  /* Додаємо висоту рядка, щоб крапки зверху мали місце */
+  line-height: 1.3;
+  /* Додаємо бокові відступи, щоб крайні крапки "ї" не обрізалися */
+  padding: 0 25px;
   background: linear-gradient(90deg, #ff007f, #ff6f00, #ffcc00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  text-shadow: 0 3px 8px rgba(255, 111, 0, 0.3);
+  /* Чітка тінь без зайвого розмиття */
+  text-shadow: 0 2px 5px rgba(255, 111, 0, 0.15);
+  display: block;
 }
 
 .sale p {
-  font-size: 1.2rem;
+  font-size: 1.35rem;
   color: #555;
-  margin-bottom: 40px;
+  margin-bottom: 60px;
+  line-height: 1.5;
 }
 
-/* 🧩 Сітка */
 .saleGrid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
-  gap: 25px;
-  max-width: 1100px;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 35px;
+  max-width: 1200px;
   width: 100%;
   margin: 0 auto;
-  padding: 0 10px 50px;
+  padding: 0 15px 50px;
+  box-sizing: border-box;
 }
 
-/* 🏷️ Картка товару */
 .saleCard {
   background: #fff;
-  border-radius: 15px;
-  padding: 15px;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.08);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
   display: flex;
   flex-direction: column;
-  align-items: center;
-  text-align: center;
+  min-height: 520px;
+  height: auto;
   position: relative;
   overflow: hidden;
-  min-height: 400px;
+  box-sizing: border-box;
 }
 
 .saleCard:hover {
   transform: translateY(-6px) scale(1.03);
-  box-shadow: 0 10px 22px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
 }
 
-/* 💥 Стрічка “SALE” */
-.saleCard::before {
-  content: "SALE";
+/* Напис SALE на обгортці - Яскравий градієнт */
+.saleLabel {
   position: absolute;
-  top: 10px;
-  right: -40px;
-  background: linear-gradient(135deg, #ff007f, #ff6f00);
+  top: 18px;
+  right: -42px;
+  background: linear-gradient(90deg, #ff007f, #ff6f00, #ffcc00);
   color: #fff;
-  font-weight: 700;
-  font-size: 0.85rem;
-  padding: 4px 45px;
+  padding: 8px 50px;
+  font-size: 0.95rem;
+  font-weight: 900;
   transform: rotate(45deg);
-  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 15px rgba(255, 0, 127, 0.4);
+  z-index: 10;
+  letter-spacing: 2px;
+  text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.4);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  pointer-events: none;
+  text-transform: uppercase;
 }
 
-/* 🖼️ Зображення */
+/* Бейдж зі знижкою % */
+.discountBadge {
+  position: absolute; 
+  top: 15px; 
+  left: 15px; 
+  background: #e11d48; 
+  color: white; 
+  padding: 6px 14px; 
+  border-radius: 10px; 
+  font-weight: 900; 
+  font-size: 1.1rem; 
+  z-index: 10; 
+  box-shadow: 0 4px 10px rgba(225, 29, 72, 0.4);
+}
+
 .saleCard img {
   width: 100%;
-  height: 180px;
+  height: 190px;
   object-fit: cover;
   border-radius: 12px;
   margin-bottom: 12px;
-  transition: transform 0.3s ease;
 }
 
-.saleCard:hover img {
-  transform: scale(1.05);
-}
-
-/* 📝 Назва */
 .saleCard h3 {
-  font-size: 1.2rem;
-  margin-bottom: 6px;
+  font-size: 1.1rem;
+  margin-bottom: 8px;
   color: #333;
-  font-weight: 600;
+  font-weight: 700;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
-/* 📄 Опис */
-.saleCard p {
-  font-size: 0.95rem;
+.saleCard .desc {
+  font-size: 0.9rem;
   color: #555;
   line-height: 1.4;
   flex-grow: 1;
-  margin-bottom: 10px;
-  max-height: 45px;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  margin-bottom: 20px;
+  text-align: center;
+  display: block; 
+  overflow: visible;
+  -webkit-line-clamp: unset;
 }
 
-/* 💰 Контейнер цін */
 .priceBlock {
+  margin-top: auto;
   display: flex;
   flex-direction: column;
   align-items: center;
-  margin-top: auto;
-  padding-bottom: 10px;
+  margin-bottom: 15px;
 }
 
-/* 🔸 Стара ціна */
 .oldPrice {
   font-size: 1rem;
-  color: #222; /* чорний */
+  color: #888;
   text-decoration: line-through;
-  margin-bottom: 5px;
+  margin-bottom: 2px;
 }
 
-/* ❤️ Нова ціна */
 .discountedPrice {
   font-size: 1.5rem;
   color: #e60026;
-  font-weight: 700;
-  line-height: 1.1;
+  font-weight: 800;
+  margin-bottom: 5px;
 }
 
-/* 🛒 Кнопка */
-.btn {
-  display: inline-block;
-  width: 100%;
-  padding: 10px 0;
-  background: linear-gradient(135deg, #ff3c3c, #ff7b00, #ffb300);
-  color: white;
-  font-weight: 600;
-  font-size: 1rem;
-  border-radius: 10px;
+.stockStatus {
+  font-size: 0.8rem;
+  font-weight: 700;
   text-transform: uppercase;
-  text-decoration: none;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(255, 100, 0, 0.3);
+  margin-bottom: 5px;
+}
+
+.inStock { color: #2e7d32; }
+.outOfStock { color: #d32f2f; }
+
+.btn {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(135deg, #ff3c3c, #ff7b00);
+  color: white;
+  font-weight: 700;
+  font-size: 0.95rem;
+  border-radius: 10px;
   border: none;
   cursor: pointer;
-  margin-top: 8px;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(255, 60, 60, 0.25);
+  text-transform: uppercase;
 }
 
-.btn:hover {
-  background: linear-gradient(135deg, #ff4f4f, #ff8c1a, #ffd633);
-  transform: translateY(-3px);
-  box-shadow: 0 6px 16px rgba(255, 100, 0, 0.4);
+.btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ff4f4f, #ff8c1a);
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(255, 60, 60, 0.35);
 }
 
-.btn:active {
-  transform: scale(0.97);
-  box-shadow: 0 3px 8px rgba(255, 80, 0, 0.3);
+.btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
 }
 
-/* 🔔 Toast Notifications (Спливаючі повідомлення) */
 .toastContainer {
   position: fixed;
   top: 25px;
@@ -177,12 +203,11 @@
   z-index: 9999;
 }
 
-/* Змінено на зелений колір, як у категоріях "Собаки" та загальному каталозі */
 .toast {
   background: linear-gradient(135deg, #3fa34d, #2b7a0b);
   color: #fff;
   padding: 12px 18px;
-  border-radius: 12px;
+  border-radius: 10px;
   box-shadow: 0 5px 15px rgba(47, 128, 0, 0.3);
   display: flex;
   align-items: center;
@@ -193,94 +218,21 @@
   animation: slideInLeft 0.4s ease forwards;
 }
 
-.toast span {
-  flex-grow: 1;
-  margin-right: 10px;
-  text-align: left;
-}
-
 .closeBtn {
   background: none;
   border: none;
   color: #fff;
   font-weight: bold;
-  font-size: 1.1rem;
   cursor: pointer;
-  transition: transform 0.2s ease;
-  opacity: 0.8;
+  margin-left: 10px;
 }
 
-.closeBtn:hover {
-  transform: scale(1.2);
-  opacity: 1;
-}
-
-/* 🌈 Анімація */
 @keyframes fadeIn {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes slideInLeft {
-  from {
-    opacity: 0;
-    transform: translateX(-100%);
-  }
-  to {
-    opacity: 1;
-    transform: translateX(0);
-  }
-}
-
-/* 📱 Адаптивність */
-@media (max-width: 768px) {
-  .sale {
-    padding: 50px 15px;
-  }
-
-  .sale h1 {
-    font-size: 2rem;
-  }
-
-  .saleCard {
-    min-height: 360px;
-  }
-
-  .saleCard img {
-    height: 160px;
-  }
-
-  .discountedPrice {
-    font-size: 1.3rem;
-  }
-  
-  .toast {
-    min-width: 220px;
-    font-size: 0.9rem;
-  }
-}
-
-@media (max-width: 480px) {
-  .sale {
-    padding: 40px 10px;
-  }
-
-  .saleCard {
-    min-height: 340px;
-  }
-
-  .saleCard img {
-    height: 150px;
-  }
-  
-  .toastContainer {
-    left: 10px;
-    top: 15px;
-  }
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
 }

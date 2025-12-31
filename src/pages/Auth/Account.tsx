@@ -1,5 +1,7 @@
+
 import React, { useEffect, useState } from "react";
-import { useNavigate } from "react-router-dom";
+// Fix: Import from react-router instead of react-router-dom
+import { useNavigate } from "react-router";
 import "./Account.css";
 
 interface UserData {
@@ -30,20 +32,16 @@ const Account: React.FC = () => {
         setAddress(parsedUser.address || "");
         setPhone(parsedUser.phone || "");
       } catch (e) {
-        console.error("Error parsing user data", e);
-        sessionStorage.removeItem("user"); // Clear invalid data
+        sessionStorage.removeItem("user"); 
         navigate("/login");
       }
     } else {
-      // Якщо користувача немає в sessionStorage (нова вкладка), негайно перенаправляємо
       navigate("/login");
     }
   }, [navigate]);
 
-  // 🛡️ Валідація телефону: тільки цифри та "+", макс 13 символів
   const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
-    // Регулярний вираз: дозволяє "+" тільки на початку, далі лише цифри
     if (/^\+?[0-9]*$/.test(val) && val.length <= 13) {
       setPhone(val);
     }
@@ -56,7 +54,6 @@ const Account: React.FC = () => {
     setLoading(true);
     setMessage("");
 
-    // 🛡️ FRONTEND ЗАХИСТ ВІД SQL-ІН'ЄКЦІЙ (Basic)
     const dangerousPattern = /('|"|;|--|\/\*|\*\/|xp_|DROP|SELECT|INSERT|UPDATE|DELETE|UNION)/i;
     
     if (dangerousPattern.test(address)) {
@@ -80,20 +77,21 @@ const Account: React.FC = () => {
     const token = sessionStorage.getItem("user_token");
 
     try {
-      const response = await fetch("http://localhost/zoo-api/update_user.php", {
+      // Fix: Removed redundant/incorrectly formatted fetch call and kept the correct one
+      const actualResponse = await fetch("http://localhost/zoo-api/update_user.php", {
         method: "POST",
         headers: { 
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}` // 🔑 Додаємо JWT токен
+          "Authorization": `Bearer ${token}` 
         },
         body: JSON.stringify({
           user_id: user.user_id,
-          address: address.trim(), // Trim прибирає зайві пробіли
+          address: address.trim(), 
           phone: phone.trim(),
         }),
       });
 
-      const data = await response.json();
+      const data = await actualResponse.json();
 
       if (data.status === "success") {
         const updatedUser = { ...user, address, phone };
@@ -106,7 +104,6 @@ const Account: React.FC = () => {
         setMessage("❌ " + (data.message || "Помилка при оновленні."));
       }
     } catch (error) {
-      console.error(error);
       setMessage("❌ Сервер недоступний. Спробуйте пізніше.");
     } finally {
       setLoading(false);
@@ -128,7 +125,6 @@ const Account: React.FC = () => {
     <div className="account-wrapper">
       <div className="account-container">
         
-        {/* Ліва колонка - Профіль */}
         <div className="account-sidebar">
           <div className="info-card">
             <div className="avatar-placeholder">
@@ -142,7 +138,6 @@ const Account: React.FC = () => {
           </div>
         </div>
 
-        {/* Права колонка - Редагування */}
         <div className="account-main">
           <div className="header-section">
             <h2>⚙️ Налаштування профілю</h2>
@@ -159,7 +154,7 @@ const Account: React.FC = () => {
                     value={phone}
                     onChange={handlePhoneChange}
                     placeholder="+380XXXXXXXXX"
-                    maxLength={13} // Обмеження довжини в HTML
+                    maxLength={13} 
                   />
                 </div>
                 <div className="form-group">
@@ -169,7 +164,7 @@ const Account: React.FC = () => {
                     value={address}
                     onChange={(e) => setAddress(e.target.value)}
                     placeholder="м. Київ, вул. Хрещатик, 1"
-                    maxLength={255} // Обмеження довжини в HTML
+                    maxLength={255} 
                   />
                 </div>
               </div>

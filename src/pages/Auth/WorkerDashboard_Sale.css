@@ -1,0 +1,268 @@
+/* WorkerDashboard_Sale.css - Professional Edition */
+
+.sale-panel-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 25px;
+}
+
+.sale-title {
+  font-size: 1.8rem;
+  font-weight: 800;
+  color: #0f172a;
+  margin: 0;
+}
+
+.btn-create-sale {
+  background: linear-gradient(135deg, #3b82f6, #2563eb) !important;
+  color: white !important;
+  padding: 12px 28px !important;
+  border-radius: 14px !important;
+  font-weight: 700 !important;
+  border: none !important;
+  cursor: pointer;
+  box-shadow: 0 4px 15px rgba(37, 130, 246, 0.3) !important;
+}
+
+/* Перемикачі режимів пошуку */
+.search-mode-selector {
+  display: flex;
+  background: #f1f5f9;
+  padding: 5px;
+  border-radius: 12px;
+  margin-bottom: 20px;
+  gap: 5px;
+}
+
+.search-mode-selector button {
+  flex: 1;
+  padding: 10px;
+  border: none;
+  background: transparent;
+  color: #64748b;
+  font-weight: 700;
+  font-size: 0.85rem;
+  border-radius: 9px;
+  cursor: pointer;
+  transition: all 0.2s;
+  box-shadow: none !important;
+}
+
+.search-mode-selector button.active {
+  background: white;
+  color: #0f172a;
+  box-shadow: 0 4px 6px rgba(0,0,0,0.05) !important;
+}
+
+/* Випадаючий список */
+.search-wrapper-container {
+  position: relative;
+}
+
+.search-dropdown-box {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  background: white;
+  border-radius: 16px;
+  margin-top: 8px;
+  max-height: 250px;
+  overflow-y: auto;
+  z-index: 2000;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+}
+
+.dropdown-item-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.dropdown-item-row:hover {
+  background: #f0f9ff;
+}
+
+.dropdown-item-row img {
+  width: 44px;
+  height: 44px;
+  border-radius: 8px;
+  object-fit: cover;
+}
+
+.item-name {
+  display: block;
+  font-weight: 700;
+  color: #1e293b;
+}
+
+.dropdown-empty {
+  padding: 20px;
+  text-align: center;
+  color: #94a3b8;
+  font-style: italic;
+}
+
+/* Пресети знижок */
+.discount-presets-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 8px;
+  margin-bottom: 15px;
+}
+
+.preset-btn {
+  padding: 12px 0;
+  border: 2px solid #e2e8f0 !important;
+  background: white !important;
+  color: #64748b !important;
+  font-weight: 800 !important;
+  border-radius: 12px !important;
+  cursor: pointer;
+  transition: all 0.2s !important;
+}
+
+.preset-btn.active {
+  border-color: #3b82f6 !important;
+  color: #3b82f6 !important;
+  background: #eff6ff !important;
+  box-shadow: 0 4px 10px rgba(59, 130, 246, 0.1) !important;
+}
+
+/* Ручне введення */
+.manual-discount-box {
+  position: relative;
+  max-width: 140px;
+}
+
+.manual-input-field {
+  padding: 12px !important;
+  font-size: 1.4rem !important;
+  font-weight: 800 !important;
+  text-align: center !important;
+  padding-right: 40px !important;
+}
+
+.percent-symbol {
+  position: absolute;
+  right: 15px;
+  top: 50%;
+  transform: translateY(-50%);
+  font-weight: 800;
+  font-size: 1.2rem;
+  color: #94a3b8;
+}
+
+/* Luxury Card */
+.luxury-price-preview-card {
+  background: #0f172a;
+  border-radius: 24px;
+  padding: 24px;
+  color: white;
+  margin: 30px 0;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.2);
+}
+
+.preview-header {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding-bottom: 15px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+  margin-bottom: 20px;
+}
+
+.preview-header img {
+  width: 50px;
+  height: 50px;
+  border-radius: 10px;
+  object-fit: cover;
+}
+
+.preview-titles strong {
+  display: block;
+  font-size: 1rem;
+}
+
+.preview-titles span {
+  font-size: 0.75rem;
+  opacity: 0.6;
+}
+
+.price-comparison {
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+}
+
+.price-item {
+  text-align: center;
+}
+
+.price-item small {
+  display: block;
+  font-size: 0.65rem;
+  font-weight: 800;
+  opacity: 0.5;
+  margin-bottom: 5px;
+}
+
+.price-item span {
+  font-size: 1.5rem;
+  font-weight: 800;
+}
+
+.price-item.old span {
+  text-decoration: line-through;
+  color: #94a3b8;
+}
+
+.price-item.new span {
+  color: #10b981;
+  font-size: 2rem;
+}
+
+.price-arrow {
+  font-size: 1.5rem;
+  opacity: 0.2;
+}
+
+.active-glow {
+  animation: glow 2s infinite alternate;
+}
+
+@keyframes glow {
+  from { box-shadow: 0 0 10px rgba(37, 130, 246, 0.2); }
+  to { box-shadow: 0 0 20px rgba(37, 130, 246, 0.5); }
+}
+
+.section-label {
+  font-weight: 700;
+  color: #475569;
+  font-size: 0.8rem;
+  margin-bottom: 8px;
+  display: block;
+  text-transform: uppercase;
+}
+
+.premium-input {
+  width: 100%;
+  padding: 14px !important;
+  border: 2px solid #e2e8f0 !important;
+  border-radius: 14px !important;
+  background: #f8fafc !important;
+}
+
+.animate-slide-in {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(10px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}

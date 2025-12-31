@@ -1,18 +1,15 @@
 <?php
-require 'db.php';
+header("Access-Control-Allow-Origin: *");
+header("Access-Control-Allow-Headers: *");
+header("Content-Type: application/json");
+require_once 'db.php';
+
 try {
-    $employees = $entityManager->getRepository(Employee::class)->findAll();
-    $result = array_map(function($e) {
-        return [
-            'employee_id' => $e->employee_id,
-            'first_name' => $e->first_name,
-            'last_name' => $e->last_name,
-            'work_email' => $e->work_email,
-            'position' => $e->position
-        ];
-    }, $employees);
-    echo json_encode($result);
+    $stmt = $conn->prepare("SELECT employee_id, first_name, last_name, work_email, position FROM employee ORDER BY employee_id DESC");
+    $stmt->execute();
+    echo json_encode($stmt->fetchAll(PDO::FETCH_ASSOC));
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);
 }
 ?>

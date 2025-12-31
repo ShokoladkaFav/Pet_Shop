@@ -1,6 +1,6 @@
+
 import React, { useEffect, useState } from "react";
-import styles from "./Fish.module.css";
-import "./Fish.css"; // Імпорт стилів для тостів
+import "./Fish.css";
 
 interface Product {
   product_id: number;
@@ -8,6 +8,7 @@ interface Product {
   price: number;
   description: string;
   image_url?: string;
+  quantity?: number;
 }
 
 interface ToastMessage {
@@ -29,20 +30,21 @@ const Fish: React.FC = () => {
             if (!response.ok) throw new Error(`HTTP ${response.status}`);
             return JSON.parse(text);
         } catch (e) {
-            console.error("❌ BACKEND ERROR (Raw output):", text);
-            throw new Error("Сервер повернув HTML-помилку. Див. консоль.");
+            throw new Error("Сервер не повернув JSON.");
         }
       })
       .then((data) => {
         if (Array.isArray(data)) {
-            setProducts(data);
-        } else if (data.error) {
-            throw new Error(data.error);
+          const cleaned = data.map(p => ({
+            ...p,
+            name: p.name.replace(/\[SALE\]/gi, "").trim(),
+            description: p.description.replace(/\[SALE\]/gi, "").trim()
+          }));
+          setProducts(cleaned);
         }
         setLoading(false);
       })
       .catch((err) => {
-        console.error("❌ Помилка при отриманні даних:", err);
         setError(err.message);
         setLoading(false);
       });
@@ -56,70 +58,44 @@ const Fish: React.FC = () => {
         const user = JSON.parse(userStr);
         const uid = user.user_id || user.id;
         if (uid) cartKey = `cart_${uid}`;
-      } catch (e) {
-        console.error(e);
-      }
+      } catch (e) {}
     }
-
+    
     if (!cartKey) {
       let guestId = sessionStorage.getItem("guest_session_id");
       if (!guestId) {
-        guestId = "guest_" + Math.random().toString(36).substring(2) + Date.now().toString(36);
+        guestId = "guest_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
         sessionStorage.setItem("guest_session_id", guestId);
       }
       cartKey = `cart_${guestId}`;
     }
 
     const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
-    const existing = currentCart.find((item: any) => item.product_id === product.product_id);
+    const existingIndex = currentCart.findIndex((item: any) => item.product_id === product.product_id);
 
-    if (existing) {
-      existing.quantity = Math.min(existing.quantity + 1, 100);
+    if (existingIndex !== -1) {
+      currentCart[existingIndex].quantity = (Number(currentCart[existingIndex].quantity) || 0) + 1;
     } else {
       currentCart.push({ ...product, quantity: 1 });
     }
 
     localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("cart-updated"));
 
-    const newToast: ToastMessage = {
-      id: Date.now(),
-      text: `✅ ${product.name} додано у кошик!`,
-    };
+    const newToast: ToastMessage = { id: Date.now(), text: `✅ ${product.name} додано!` };
     setToasts((prev) => [...prev, newToast]);
-    setTimeout(() => removeToast(newToast.id), 5000);
+    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newToast.id)), 3000);
   };
 
-  const removeToast = (id: number) => {
-    setToasts((prev) => prev.filter((toast) => toast.id !== id));
-  };
-
-  if (loading)
-    return (
-      <div className={styles.fish}>
-        <h1>Рибки 🐠</h1>
-        <p>Завантаження товарів...</p>
-      </div>
-    );
-
-  if (error)
-    return (
-      <div className={styles.fish}>
-        <h1>Рибки 🐠</h1>
-        <p style={{ color: "red" }}>{error}</p>
-        <p style={{ fontSize: "0.9rem", color: "#666" }}>Перевірте консоль (F12) для деталей.</p>
-      </div>
-    );
+  if (loading) return <div className="fish"><h1>Рибки 🐠</h1><p>Завантаження...</p></div>;
 
   return (
-    <div className={styles.fish}>
+    <div className="fish">
       <div className="toast-container">
         {toasts.map((toast) => (
           <div key={toast.id} className="toast">
             <span>{toast.text}</span>
-            <button className="close-btn" onClick={() => removeToast(toast.id)}>
-              ✕
-            </button>
           </div>
         ))}
       </div>
@@ -127,29 +103,23 @@ const Fish: React.FC = () => {
       <h1>Рибки 🐠</h1>
       <p>Все для догляду за вашими акваріумними улюбленцями!</p>
 
-      <div className={styles.fishGrid}>
-        {products.length > 0 ? (
-          products.map((product) => (
-            <div key={product.product_id} className={styles.fishCard}>
-              <img
-                src={
-                  product.image_url && product.image_url.trim() !== ""
-                    ? product.image_url
-                    : "https://placehold.co/300x200?text=Фото+нема"
-                }
-                alt={product.name}
-              />
-              <h3>{product.name}</h3>
-              <p className={styles.desc}>{product.description}</p>
-              <p className={styles.price}>{product.price} грн</p>
-              <button className={styles.btn} onClick={() => addToCart(product)}>
-                В кошик
-              </button>
+      <div className="fish-grid">
+        {products.map((product) => (
+          <div key={product.product_id} className="fish-card">
+            <img src={product.image_url || "https://placehold.co/300x200?text=Немає+фото"} alt={product.name} />
+            <h3>{product.name}</h3>
+            <p className="desc">{product.description}</p>
+            <div className="price-block">
+                <p className="price">{product.price} грн</p>
+                <span className={`stock-status ${(product.quantity || 0) > 0 ? 'in-stock' : 'out-of-stock'}`}>
+                    {(product.quantity || 0) > 0 ? 'В наявності' : 'Немає в наявності'}
+                </span>
             </div>
-          ))
-        ) : (
-          <p>Немає товарів у цій категорії 🐾</p>
-        )}
+            <button className="btn" onClick={() => addToCart(product)} disabled={(product.quantity || 0) <= 0}>
+              {(product.quantity || 0) > 0 ? 'В кошик' : 'Очікується'}
+            </button>
+          </div>
+        ))}
       </div>
     </div>
   );

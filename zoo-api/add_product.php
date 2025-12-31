@@ -1,42 +1,42 @@
 <?php
-require 'db.php';
+require_once 'db.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
 
-if (!isset($data['name'], $data['price'], $data['supplier_id'])) {
-    echo json_encode(["status" => "error", "message" => "Заповніть поля"]);
+if (!$data || !isset($data['name'], $data['price'], $data['supplier_id'])) {
+    echo json_encode(["status" => "error", "message" => "Неповні дані"]);
     exit;
 }
 
 try {
-    $entityManager->beginTransaction();
+    $conn->beginTransaction();
 
-    $product = new Product();
-    $product->name = $data['name'];
-    $product->category = $data['category'];
-    $product->price = (float)$data['price'];
-    $product->supplier_id = (int)$data['supplier_id'];
-    $product->description = $data['description'] ?? '';
-    $product->image_url = $data['image_url'] ?? '';
+    // 1. Додаємо в таблицю products
+    $stmt = $conn->prepare("INSERT INTO products (name, category, price, description, supplier_id, image_url) 
+                            VALUES (?, ?, ?, ?, ?, ?)");
+    $stmt->execute([
+        $data['name'],
+        $data['category'],
+        $data['price'],
+        $data['description'] ?? '',
+        $data['supplier_id'],
+        $data['image_url'] ?? ''
+    ]);
+    
+    $productId = $conn->lastInsertId();
 
-    $entityManager->persist($product);
-    $entityManager->flush(); 
+    // 2. Додаємо початковий запис в inventory
+    $stmtInv = $conn->prepare("INSERT INTO inventory (product_id, quantity, location) VALUES (?, ?, ?)");
+    $stmtInv->execute([
+        $productId,
+        $data['quantity'] ?? 0,
+        $data['location'] ?? 'Склад-A1'
+    ]);
 
-    if (isset($data['quantity'])) {
-        $inventory = new Inventory();
-        $inventory->product_id = $product->product_id;
-        $inventory->quantity = (int)$data['quantity'];
-        $inventory->location = $data['location'] ?? 'Warehouse A';
-        
-        $entityManager->persist($inventory);
-        $entityManager->flush();
-    }
-
-    $entityManager->commit();
-    echo json_encode(["status" => "success", "message" => "Товар додано"]);
-
+    $conn->commit();
+    echo json_encode(["status" => "success", "message" => "Товар успішно додано"]);
 } catch (Exception $e) {
-    $entityManager->rollback();
+    $conn->rollBack();
     echo json_encode(["status" => "error", "message" => $e->getMessage()]);
 }
 ?>

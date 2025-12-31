@@ -1,18 +1,10 @@
 <?php
-require 'db.php';
+require_once 'db.php';
+
 try {
-    $suppliers = $entityManager->getRepository(Supplier::class)->findAll();
-    $result = array_map(function($s) {
-        return [
-            'supplier_id' => $s->supplier_id,
-            'name' => $s->name,
-            'contact_person' => $s->contact_person,
-            'phone' => $s->phone,
-            'email' => $s->email,
-            'address' => $s->address
-        ];
-    }, $suppliers);
-    echo json_encode($result);
+    $stmt = $conn->query("SELECT supplier_id, name FROM supplier");
+    $suppliers = $stmt->fetchAll();
+    echo json_encode($suppliers);
 } catch (Exception $e) {
     echo json_encode(["error" => $e->getMessage()]);
 }

@@ -1,24 +1,14 @@
 <?php
-require 'db.php';
-
+require_once 'db.php';
 try {
-    $repo = $entityManager->getRepository(Product::class);
-    $products = $repo->findAll();
-
-    $result = array_map(function($p) {
-        return [
-            'product_id' => $p->product_id,
-            'name' => $p->name,
-            'category' => $p->category,
-            'price' => $p->price,
-            'description' => $p->description,
-            'image_url' => $p->image_url,
-            'supplier_id' => $p->supplier_id
-        ];
-    }, $products);
-
-    echo json_encode($result);
+    $sql = "SELECT p.*, i.quantity, i.location 
+            FROM product p
+            LEFT JOIN inventory i ON p.product_id = i.product_id
+            ORDER BY p.product_id DESC";
+    $stmt = $conn->query($sql);
+    echo json_encode($stmt->fetchAll());
 } catch (Exception $e) {
+    http_response_code(500);
     echo json_encode(["error" => $e->getMessage()]);
 }
 ?>
