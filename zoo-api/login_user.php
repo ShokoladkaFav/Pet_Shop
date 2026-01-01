@@ -1,4 +1,9 @@
 <?php
+header("Access-Control-Allow-Origin: *");
+header("Content-Type: application/json; charset=UTF-8");
+header("Access-Control-Allow-Methods: POST");
+header("Access-Control-Allow-Headers: Content-Type, Access-Control-Allow-Headers, Authorization, X-Requested-With");
+
 require 'db.php';
 
 $data = json_decode(file_get_contents("php://input"), true);
@@ -8,21 +13,26 @@ if (!isset($data['email'], $data['password'])) {
     exit;
 }
 
+$email = trim($data['email']);
+$password = $data['password'];
+
 try {
-    $userRepo = $entityManager->getRepository(User::class);
-    $user = $userRepo->findOneBy(['email' => $data['email']]);
+    $stmt = $conn->prepare("SELECT * FROM users WHERE email = ?");
+    $stmt->execute([$email]);
+    $user = $stmt->fetch(PDO::FETCH_ASSOC);
 
     if ($user) {
-        $checkHash = hash('sha256', $data['password'] . $user->salt);
-        if ($checkHash === $user->hash) {
+        $checkHash = hash('sha256', $password . $user['salt']);
+        
+        if ($checkHash === $user['hash']) {
             echo json_encode([
                 "status" => "success",
                 "user" => [
-                    "user_id" => $user->user_id,
-                    "username" => $user->username,
-                    "email" => $user->email,
-                    "address" => $user->address,
-                    "phone" => $user->phone
+                    "user_id" => $user['user_id'], // Використовуємо 'user_id' з бази
+                    "username" => $user['username'],
+                    "email" => $user['email'],
+                    "address" => $user['address'] ?? "",
+                    "phone" => $user['phone'] ?? ""
                 ]
             ]);
         } else {
@@ -31,7 +41,8 @@ try {
     } else {
         echo json_encode(["status" => "error", "message" => "Користувача не знайдено"]);
     }
-} catch (Exception $e) {
-    echo json_encode(["status" => "error", "message" => "System error"]);
+
+} catch (PDOException $e) {
+    echo json_encode(["status" => "error", "message" => "Помилка сервера: " . $e->getMessage()]);
 }
 ?>

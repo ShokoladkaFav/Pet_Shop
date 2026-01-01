@@ -1,144 +1,347 @@
 
+/* 🐱 Повноекранний контейнер сторінки - ТЕПЕР ЯК У СОБАК */
 .cats {
-  padding: 40px 20px;
-  background: #fdf2f8;
+  width: 100vw;
   min-height: calc(100vh - 60px);
+  padding: 100px 20px 100px;
+  background: linear-gradient(135deg, #fdfbfb, #ebedee); /* Такий же сірий градієнт */
+  box-sizing: border-box;
+  animation: fadeInCats 0.8s ease-in-out;
   display: flex;
   flex-direction: column;
   align-items: center;
-}
-
-.cats h1 {
-  font-size: 2.5rem;
-  color: #b83280;
-  margin-bottom: 30px;
-}
-
-.cats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-  gap: 25px;
-  max-width: 1200px;
-  width: 100%;
-}
-
-.cat-card {
-  background: white;
-  border-radius: 16px;
-  padding: 20px;
-  box-shadow: 0 4px 12px rgba(0,0,0,0.05);
-  display: flex;
-  flex-direction: column;
-  transition: transform 0.2s;
+  justify-content: flex-start;
   text-align: center;
 }
 
-.cat-card:hover {
-  transform: translateY(-5px);
+@keyframes fadeInCats {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
+/* 🐾 Заголовок - зелений градієнт */
+.cats h1 {
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-bottom: 14px;
+  letter-spacing: 1px;
+  background: linear-gradient(90deg, #2e7d32, #66bb6a);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+/* ✨ Підзаголовок */
+.cats p {
+  font-size: 1.35rem;
+  color: #555;
+  margin-bottom: 60px;
+  line-height: 1.6;
+}
+
+/* 🧩 Сітка карток */
+.cats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 35px;
+  max-width: 1200px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 15px 50px;
+  box-sizing: border-box;
+}
+
+/* 🏷️ Картка товару */
+.cat-card {
+  background: #fff;
+  border-radius: 16px;
+  padding: 20px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.08);
+  transition: transform 0.35s ease, box-shadow 0.35s ease;
+  display: flex;
+  flex-direction: column;
+  height: 580px; 
+  box-sizing: border-box;
+}
+
+.cat-card:hover {
+  transform: translateY(-6px) scale(1.03);
+  box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
+}
+
+/* 🖼️ Зображення - ПРИБРАНО ФОН */
 .cat-card img {
   width: 100%;
-  height: 200px;
+  height: 190px;
   object-fit: contain;
-  margin-bottom: 15px;
+  background: transparent;
+  border-radius: 14px;
+  margin-bottom: 12px;
 }
 
+/* 📝 Назва товару */
+.cat-card h3 {
+  font-size: 1.2rem;
+  margin-bottom: 6px;
+  color: #333;
+  font-weight: 600;
+  text-align: center;
+  min-height: 2.8rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* 📄 Опис */
+.cat-card .desc {
+  font-size: 0.95rem;
+  color: #555;
+  line-height: 1.4;
+  text-align: center;
+  flex-grow: 1;
+  margin-bottom: 15px;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Кнопка Подробніше */
 .details-btn-cat {
-  background: #fce7f3;
-  border: none;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
   padding: 8px 16px;
   border-radius: 8px;
-  color: #b83280;
+  color: #475569;
   font-size: 0.85rem;
   cursor: pointer;
   margin-bottom: 15px;
   align-self: center;
+  font-weight: 600;
+  transition: all 0.2s;
 }
 
-.price-block {
-  margin-top: auto;
+.details-btn-cat:hover {
+  background: #e2e8f0;
+  color: #2e7d32;
+}
+
+/* 💸 Ціна та Статус - ЯК У СОБАК */
+.price-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   margin-bottom: 15px;
-  text-align: center;
 }
 
-.price {
-  font-size: 1.3rem;
+.cats .price {
+  font-size: 1.4rem;
+  color: #333;
+  font-weight: 400; /* Не жирний шрифт, як у собак */
+  margin: 0;
+}
+
+.stock-status {
+  font-size: 0.8rem;
   font-weight: 700;
+  text-transform: uppercase;
+  margin-top: 5px;
 }
 
-.btn {
-  background: #b83280;
+.stock-status.in-stock { color: #2e7d32; }
+.stock-status.out-of-stock { color: #d32f2f; }
+
+/* 🛒 Кнопка - зелена як у собак */
+.cat-card .btn {
+  width: 100%;
+  padding: 12px 0;
+  background: linear-gradient(135deg, #43a047, #2e7d32);
   color: white;
-  border: none;
-  padding: 12px;
+  font-weight: 600;
+  font-size: 0.95rem;
   border-radius: 10px;
+  border: none;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
 }
 
-/* Світла модалка */
+.cat-card .btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
+  transform: translateY(-2px);
+}
+
+.cat-card .btn:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
+/* === ПРЕМІАЛЬНЕ МОДАЛЬНЕ ВІКНО (СВІТЛЕ) === */
 .details-modal-overlay {
-  position: fixed;
+  position: fixed !important;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(15px);
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
   display: flex;
   justify-content: center;
   align-items: center;
-  z-index: 9999;
+  z-index: 99999;
+  padding: 20px;
+  box-sizing: border-box;
 }
 
 .details-modal {
-  background: white !important;
-  padding: 40px;
-  border-radius: 32px;
-  max-width: 520px;
-  width: 90%;
-  box-shadow: 0 20px 50px rgba(0,0,0,0.08);
-  text-align: center;
-  color: #1e293b !important;
+  background: #ffffff !important;
+  border-radius: 40px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 50px;
+  position: relative;
+  animation: modalScaleUpCats 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #000000;
+  border: 1px solid #f1f5f9;
 }
 
-.details-modal h2 {
-  color: #b83280;
-  margin-bottom: 25px;
-  font-weight: 800;
+@keyframes modalScaleUpCats {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
 }
 
-.details-image-container {
-  background: #fff5f9;
-  border-radius: 20px;
-  padding: 15px;
-  margin-bottom: 20px;
+.modal-image-gallery {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
 }
 
-.details-image-container img {
-  max-width: 100%;
-  max-height: 250px;
+.modal-image-gallery img {
+  max-width: 320px;
+  height: auto;
   object-fit: contain;
 }
 
-.details-info-list p {
-  padding: 14px 0;
-  border-bottom: 1px solid #fce7f3;
-  margin: 0;
-  text-align: center;
-  color: #334155 !important;
+.modal-content-list {
+  text-align: left;
+  margin-bottom: 40px;
 }
 
-.details-info-list p strong { color: #b83280; }
+.spec-item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
 
-.close-details-btn {
+.spec-label {
+  color: #8c8c8c;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.spec-value {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.description-text {
+  color: #000000 !important; /* ЧОРНИЙ ТЕКСТ */
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.spec-value.stock-positive { color: #10b981 !important; }
+.spec-value.stock-negative { color: #ef4444 !important; }
+
+.modal-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
   width: 100%;
-  margin-top: 25px;
-  padding: 16px;
-  background: #fdf2f8 !important;
-  border: 1px solid #fce7f3 !important;
-  border-radius: 16px;
+}
+
+.modal-buy-btn {
+  background: #2e7d32 !important;
+  color: white !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
   cursor: pointer;
-  font-weight: 700;
-  color: #b83280 !important;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-buy-btn:hover:not(:disabled) {
+  background: #235d26 !important;
+  transform: translateY(-2px);
+}
+
+.modal-close-btn {
+  background: #333333 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-close-btn:hover {
+  background: #222222 !important;
+}
+
+/* === TOAST STYLES (MATCHING SALE PAGE) === */
+.toast-container {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+}
+
+.toast {
+  background: linear-gradient(135deg, #3fa34d, #2b7a0b);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(47, 128, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 280px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  animation: slideInLeft 0.4s ease forwards;
+}
+
+.toast-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
 }

@@ -4,7 +4,7 @@
   width: 100vw;
   min-height: calc(100vh - 60px);
   padding: 100px 20px 100px;
-  background: linear-gradient(135deg, #e1f5fe, #b3e5fc);
+  background: linear-gradient(135deg, #fdfbfb, #ebedee);
   box-sizing: border-box;
   animation: fadeIn 0.8s ease-in-out;
   display: flex;
@@ -20,7 +20,7 @@
   font-weight: 700;
   margin-bottom: 14px;
   letter-spacing: 1px;
-  background: linear-gradient(90deg, #0288d1, #03a9f4);
+  background: linear-gradient(90deg, #2e7d32, #66bb6a);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
@@ -54,7 +54,7 @@
   transition: transform 0.35s ease, box-shadow 0.35s ease;
   display: flex;
   flex-direction: column;
-  height: 520px;
+  height: 580px;
   box-sizing: border-box;
 }
 
@@ -63,11 +63,12 @@
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
 }
 
-/* 🖼️ Зображення */
+/* 🖼️ Зображення - ПРИБРАНО ФОН */
 .bird-card img {
   width: 100%;
   height: 190px;
-  object-fit: cover;
+  object-fit: contain;
+  background: transparent;
   border-radius: 14px;
   margin-bottom: 12px;
 }
@@ -99,6 +100,26 @@
   overflow: hidden;
 }
 
+/* Кнопка Подробніше */
+.details-btn-bird {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 15px;
+  align-self: center;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.details-btn-bird:hover {
+  background: #e2e8f0;
+  color: #2e7d32;
+}
+
 /* 💸 Ціна та блок статусу */
 .price-block {
   display: flex;
@@ -110,7 +131,7 @@
 .birds .price {
   font-size: 1.4rem;
   color: #333;
-  font-weight: 400; /* Не жирний */
+  font-weight: 400;
   margin: 0;
 }
 
@@ -128,7 +149,7 @@
 .bird-card .btn {
   width: 100%;
   padding: 12px 0;
-  background: linear-gradient(135deg, #03a9f4, #0288d1);
+  background: linear-gradient(135deg, #43a047, #2e7d32);
   color: white;
   font-weight: 600;
   font-size: 0.95rem;
@@ -136,11 +157,11 @@
   border: none;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 4px 10px rgba(3, 169, 244, 0.25);
+  box-shadow: 0 4px 10px rgba(46, 125, 50, 0.25);
 }
 
 .bird-card .btn:hover:not(:disabled) {
-  background: linear-gradient(135deg, #0288d1, #0277bd);
+  background: linear-gradient(135deg, #2e7d32, #1b5e20);
   transform: translateY(-2px);
 }
 
@@ -148,4 +169,173 @@
   background: #ccc;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* === ПРЕМІАЛЬНЕ МОДАЛЬНЕ ВІКНО (СВІТЛЕ) === */
+.details-modal-overlay {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.details-modal {
+  background: #ffffff !important;
+  border-radius: 40px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 50px;
+  position: relative;
+  color: #000000;
+  border: 1px solid #f1f5f9;
+}
+
+.modal-image-gallery {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.modal-image-gallery img {
+  max-width: 320px;
+  height: auto;
+  object-fit: contain;
+}
+
+.modal-content-list {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.spec-item {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.spec-label {
+  color: #8c8c8c;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.spec-value {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.description-text {
+  color: #000000 !important;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.spec-value.stock-positive { color: #10b981 !important; }
+.spec-value.stock-negative { color: #ef4444 !important; }
+
+.modal-footer-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.modal-buy-btn {
+  background: #2e7d32 !important;
+  color: white !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-buy-btn:hover:not(:disabled) {
+  background: #235d26 !important;
+  transform: translateY(-2px);
+}
+
+.modal-close-btn {
+  background: #333333 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modal-close-btn:hover {
+  background: #222222 !important;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* === TOAST STYLES (MATCHING SALE PAGE) === */
+.toast-container {
+  position: fixed;
+  top: 25px;
+  left: 25px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  z-index: 9999;
+}
+
+.toast {
+  background: linear-gradient(135deg, #3fa34d, #2b7a0b);
+  color: #fff;
+  padding: 12px 18px;
+  border-radius: 10px;
+  box-shadow: 0 5px 15px rgba(47, 128, 0, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  min-width: 280px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  animation: slideInLeft 0.4s ease forwards;
+}
+
+.toast-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-weight: bold;
+  cursor: pointer;
+  margin-left: 10px;
+}
+
+@keyframes slideInLeft {
+  from { opacity: 0; transform: translateX(-100%); }
+  to { opacity: 1; transform: translateX(0); }
 }

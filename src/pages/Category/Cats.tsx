@@ -7,6 +7,7 @@ interface Product {
   name: string;
   price: number;
   description: string;
+  long_description?: string;
   image_url?: string;
   quantity?: number;
 }
@@ -51,6 +52,10 @@ const Cats: React.FC = () => {
       });
   }, []);
 
+  const removeToast = (id: number) => {
+    setToasts((prev) => prev.filter((toast) => toast.id !== id));
+  };
+
   const addToCart = (product: Product) => {
     const userStr = sessionStorage.getItem("user");
     let cartKey = "";
@@ -86,7 +91,7 @@ const Cats: React.FC = () => {
 
     const newToast: ToastMessage = { id: Date.now(), text: `✅ ${product.name} додано!` };
     setToasts((prev) => [...prev, newToast]);
-    setTimeout(() => setToasts(prev => prev.filter(t => t.id !== newToast.id)), 3000);
+    setTimeout(() => removeToast(newToast.id), 3000);
   };
 
   if (loading) return <div className="cats"><h1>Коти 🐱</h1><p>Завантаження...</p></div>;
@@ -97,10 +102,14 @@ const Cats: React.FC = () => {
         {toasts.map((toast) => (
           <div key={toast.id} className="toast">
             <span>{toast.text}</span>
+            <button className="toast-close-btn" onClick={() => removeToast(toast.id)}>✕</button>
           </div>
         ))}
       </div>
+
       <h1>Коти 🐱</h1>
+      <p>Найкращий вибір для ваших пухнастих друзів!</p>
+
       <div className="cats-grid">
         {products.map((product) => (
           <div key={product.product_id} className="cat-card">
@@ -112,8 +121,8 @@ const Cats: React.FC = () => {
               Подробніше
             </button>
 
-            <div className="price-block">
-                <p className="price">{product.price} грн</p>
+            <div className="price-section">
+                <p className="price">{Number(product.price).toFixed(2)} грн</p>
                 <span className={`stock-status ${(product.quantity || 0) > 0 ? 'in-stock' : 'out-of-stock'}`}>
                     {(product.quantity || 0) > 0 ? 'В наявності' : 'Немає в наявності'}
                 </span>
@@ -128,17 +137,42 @@ const Cats: React.FC = () => {
       {selectedProduct && (
         <div className="details-modal-overlay" onClick={() => setSelectedProduct(null)}>
           <div className="details-modal" onClick={e => e.stopPropagation()}>
-            <div className="details-modal-content">
-              <div className="details-image-container">
-                <img src={selectedProduct.image_url || "https://placehold.co/400x300?text=Немає+фото"} alt={selectedProduct.name} />
+            <div className="modal-image-gallery">
+              <img src={selectedProduct.image_url || "https://placehold.co/500x500?text=📦"} alt={selectedProduct.name} />
+            </div>
+
+            <div className="modal-content-list">
+              <div className="spec-item">
+                <span className="spec-label">Назва:</span>
+                <span className="spec-value">{selectedProduct.name}</span>
               </div>
-              <h2>{selectedProduct.name}</h2>
-              <div className="details-info-list">
-                <p><strong>Опис:</strong> {selectedProduct.description}</p>
-                <p><strong>Для кого:</strong> Коти 🐱</p>
-                <p><strong>Ціна:</strong> {selectedProduct.price} грн</p>
+              <div className="spec-item">
+                <span className="spec-label">Ціна:</span>
+                <span className="spec-value">{Number(selectedProduct.price).toFixed(2)} грн</span>
               </div>
-              <button className="close-details-btn" onClick={() => setSelectedProduct(null)}>Закрити</button>
+              <div className="spec-item">
+                <span className="spec-label">Наявність:</span>
+                <span className={`spec-value ${(selectedProduct.quantity || 0) > 0 ? 'stock-positive' : 'stock-negative'}`}>
+                  {(selectedProduct.quantity || 0) > 0 ? `${selectedProduct.quantity} шт.` : 'Немає в наявності'}
+                </span>
+              </div>
+              <div className="spec-item" style={{ flexDirection: 'column', marginTop: '15px' }}>
+                <span className="spec-label" style={{ marginBottom: '8px' }}>Опис:</span>
+                <span className="spec-value description-text" style={{ whiteSpace: 'pre-wrap' }}>
+                  {selectedProduct.long_description || selectedProduct.description || "Інформація про товар уточнюється."}
+                </span>
+              </div>
+            </div>
+
+            <div className="modal-footer-actions">
+              {(selectedProduct.quantity || 0) > 0 && (
+                <button className="modal-buy-btn" onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}>
+                  Додати до кошика
+                </button>
+              )}
+              <button className="modal-close-btn" onClick={() => setSelectedProduct(null)}>
+                Закрити
+              </button>
             </div>
           </div>
         </div>

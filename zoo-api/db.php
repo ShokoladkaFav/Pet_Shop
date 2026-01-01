@@ -27,6 +27,7 @@ $options = [
 
 try {
     $conn = new PDO($dsn, $user, $pass, $options);
+    $pdo = $conn;
 } catch (\PDOException $e) {
     echo json_encode(["status" => "error", "message" => "PDO Connection failed: " . $e->getMessage()]);
     exit();

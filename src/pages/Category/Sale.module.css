@@ -16,16 +16,12 @@
   font-size: 3.2rem;
   font-weight: 800;
   margin-bottom: 14px;
-  /* Збільшуємо відстань, щоб "і" та "ї" були чітко розділені */
   letter-spacing: 4px;
-  /* Додаємо висоту рядка, щоб крапки зверху мали місце */
   line-height: 1.3;
-  /* Додаємо бокові відступи, щоб крайні крапки "ї" не обрізалися */
   padding: 0 25px;
   background: linear-gradient(90deg, #ff007f, #ff6f00, #ffcc00);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
-  /* Чітка тінь без зайвого розмиття */
   text-shadow: 0 2px 5px rgba(255, 111, 0, 0.15);
   display: block;
 }
@@ -56,7 +52,7 @@
   transition: transform 0.35s ease, box-shadow 0.35s ease;
   display: flex;
   flex-direction: column;
-  min-height: 520px;
+  min-height: 580px; /* Збільшено для кнопки Подробніше */
   height: auto;
   position: relative;
   overflow: hidden;
@@ -68,7 +64,6 @@
   box-shadow: 0 12px 26px rgba(0, 0, 0, 0.12);
 }
 
-/* Напис SALE на обгортці - Яскравий градієнт */
 .saleLabel {
   position: absolute;
   top: 18px;
@@ -88,7 +83,6 @@
   text-transform: uppercase;
 }
 
-/* Бейдж зі знижкою % */
 .discountBadge {
   position: absolute; 
   top: 15px; 
@@ -106,7 +100,8 @@
 .saleCard img {
   width: 100%;
   height: 190px;
-  object-fit: cover;
+  object-fit: contain; /* Для чистого фону */
+  background: transparent;
   border-radius: 12px;
   margin-bottom: 12px;
 }
@@ -129,9 +124,30 @@
   flex-grow: 1;
   margin-bottom: 20px;
   text-align: center;
-  display: block; 
-  overflow: visible;
-  -webkit-line-clamp: unset;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+/* Кнопка Подробніше */
+.detailsBtnSale {
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  padding: 8px 16px;
+  border-radius: 8px;
+  color: #475569;
+  font-size: 0.85rem;
+  cursor: pointer;
+  margin-bottom: 15px;
+  align-self: center;
+  font-weight: 600;
+  transition: all 0.2s;
+}
+
+.detailsBtnSale:hover {
+  background: #e2e8f0;
+  color: #e11d48;
 }
 
 .priceBlock {
@@ -191,6 +207,136 @@
   background: #ccc;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+/* === ПРЕМІАЛЬНЕ МОДАЛЬНЕ ВІКНО === */
+.detailsModalOverlay {
+  position: fixed !important;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.4) !important;
+  backdrop-filter: blur(8px) !important;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+.detailsModal {
+  background: #ffffff !important;
+  border-radius: 40px;
+  max-width: 600px;
+  width: 100%;
+  max-height: 90vh;
+  box-shadow: 0 30px 60px rgba(0, 0, 0, 0.15) !important;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  padding: 50px;
+  position: relative;
+  animation: modalScaleUpSale 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: #000000;
+  border: 1px solid #f1f5f9;
+}
+
+@keyframes modalScaleUpSale {
+  from { opacity: 0; transform: scale(0.9) translateY(20px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+
+.modalImageGallery {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 40px;
+}
+
+.modalImageGallery img {
+  max-width: 320px;
+  height: auto;
+  object-fit: contain;
+}
+
+.modalContentList {
+  text-align: left;
+  margin-bottom: 40px;
+}
+
+.specItem {
+  display: flex;
+  justify-content: flex-start;
+  align-items: baseline;
+  margin-bottom: 14px;
+  font-size: 1.2rem;
+  line-height: 1.4;
+}
+
+.specLabel {
+  color: #8c8c8c;
+  margin-right: 8px;
+  white-space: nowrap;
+  font-weight: 500;
+}
+
+.specValue {
+  color: #000000 !important;
+  font-weight: 600;
+}
+
+.descriptionText {
+  color: #000000 !important;
+  font-weight: 500;
+  line-height: 1.6;
+}
+
+.stockPositive { color: #10b981 !important; }
+.stockNegative { color: #ef4444 !important; }
+
+.modalFooterActions {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  width: 100%;
+}
+
+.modalBuyBtn {
+  background: #e11d48 !important;
+  color: white !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modalBuyBtn:hover:not(:disabled) {
+  background: #be123c !important;
+  transform: translateY(-2px);
+}
+
+.modalCloseBtn {
+  background: #333333 !important;
+  color: #ffffff !important;
+  border: none !important;
+  padding: 20px !important;
+  border-radius: 18px !important;
+  font-size: 1.2rem !important;
+  font-weight: 700 !important;
+  cursor: pointer;
+  transition: all 0.2s;
+  width: 100%;
+  text-align: center;
+}
+
+.modalCloseBtn:hover {
+  background: #222222 !important;
 }
 
 .toastContainer {

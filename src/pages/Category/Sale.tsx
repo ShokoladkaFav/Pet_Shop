@@ -6,6 +6,7 @@ interface Product {
   product_id: number;
   name: string;
   description: string;
+  long_description?: string;
   image_url?: string;
   price: number; 
   original_price: number; 
@@ -22,6 +23,7 @@ const Sale: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
 
   useEffect(() => {
     fetch("http://localhost/zoo-api/Sale.php")
@@ -43,8 +45,6 @@ const Sale: React.FC = () => {
         }
         if (Array.isArray(data)) {
           const formatted: Product[] = data.map(p => {
-            // Очищаємо назву та опис від технічного тексту [SALE]
-            // Напис "SALE" ми повернемо як стильний бейдж через CSS
             const rawName = p.name || "Товар";
             const rawDesc = p.description || "";
             
@@ -55,6 +55,7 @@ const Sale: React.FC = () => {
                 product_id: parseInt(p.product_id),
                 name: cleanName,
                 description: cleanDesc,
+                long_description: p.long_description || "",
                 image_url: p.image_url || p.image || "",
                 price: parseFloat(p.sale_price || p.price || 0),
                 original_price: parseFloat(p.original_price || 0),
@@ -76,7 +77,7 @@ const Sale: React.FC = () => {
 
   const addToCart = (product: Product) => {
     const userStr = sessionStorage.getItem("user");
-    let cartKey = "cart_guest";
+    let cartKey = "";
     if (userStr) {
       try {
         const user = JSON.parse(userStr);
@@ -84,18 +85,28 @@ const Sale: React.FC = () => {
         if (uid) cartKey = `cart_${uid}`;
       } catch (e) {}
     }
+    
+    if (!cartKey) {
+      let guestId = sessionStorage.getItem("guest_session_id");
+      if (!guestId) {
+        guestId = "guest_" + Math.random().toString(36).substring(2, 9) + Date.now().toString(36);
+        sessionStorage.setItem("guest_session_id", guestId);
+      }
+      cartKey = `cart_${guestId}`;
+    }
 
     const currentCart = JSON.parse(localStorage.getItem(cartKey) || "[]");
     const existingIndex = currentCart.findIndex((item: any) => parseInt(item.product_id) === product.product_id);
 
     if (existingIndex !== -1) {
-      currentCart[existingIndex].quantity += 1;
+      currentCart[existingIndex].quantity = (Number(currentCart[existingIndex].quantity) || 0) + 1;
     } else {
       currentCart.push({ ...product, quantity: 1 });
     }
 
     localStorage.setItem(cartKey, JSON.stringify(currentCart));
     window.dispatchEvent(new Event("storage"));
+    window.dispatchEvent(new Event("cart-updated"));
 
     const newToast: ToastMessage = {
       id: Date.now(),
@@ -168,16 +179,12 @@ const Sale: React.FC = () => {
 
             return (
               <div key={product.product_id} className={styles.saleCard}>
-                {/* Бейдж зі знижкою % */}
                 <div className={styles.discountBadge}>
                     -{discount}%
                 </div>
-
-                {/* Напис SALE на обгортці (повертаємо як просили) */}
                 <div className={styles.saleLabel}>
                     SALE
                 </div>
-
                 <img 
                     src={product.image_url && product.image_url.trim() !== "" ? product.image_url : "https://placehold.co/400x300?text=📦"} 
                     alt={product.name} 
@@ -185,6 +192,11 @@ const Sale: React.FC = () => {
                 />
                 <h3>{product.name}</h3>
                 <p className={styles.desc}>{product.description}</p>
+                
+                <button className={styles.detailsBtnSale} onClick={() => setSelectedProduct(product)}>
+                  Подробніше
+                </button>
+
                 <div className={styles.priceBlock}>
                   <span className={styles.oldPrice}>{product.original_price.toFixed(2)} ₴</span>
                   <span className={styles.discountedPrice}>{product.price.toFixed(2)} ₴</span>
@@ -198,6 +210,58 @@ const Sale: React.FC = () => {
               </div>
             );
           })}
+        </div>
+      )}
+
+      {selectedProduct && (
+        <div className={styles.detailsModalOverlay} onClick={() => setSelectedProduct(null)}>
+          <div className={styles.detailsModal} onClick={e => e.stopPropagation()}>
+            <div className={styles.modalImageGallery}>
+              <img 
+                src={selectedProduct.image_url && selectedProduct.image_url.trim() !== "" ? selectedProduct.image_url : "https://placehold.co/500x500?text=📦"} 
+                alt={selectedProduct.name} 
+                onError={(e) => { (e.target as HTMLImageElement).src = "https://placehold.co/500x500?text=📦" }}
+              />
+            </div>
+
+            <div className={styles.modalContentList}>
+              <div className={styles.specItem}>
+                <span className={styles.specLabel}>Назва:</span>
+                <span className={styles.specValue}>{selectedProduct.name}</span>
+              </div>
+              <div className={styles.specItem}>
+                <span className={styles.specLabel}>Акційна ціна:</span>
+                <span className={styles.specValue}>{Number(selectedProduct.price).toFixed(2)} грн</span>
+              </div>
+              <div className={styles.specItem}>
+                <span className={styles.specLabel}>Стара ціна:</span>
+                <span className={styles.specValue} style={{ textDecoration: 'line-through', color: '#8c8c8c' }}>{Number(selectedProduct.original_price).toFixed(2)} грн</span>
+              </div>
+              <div className={styles.specItem}>
+                <span className={styles.specLabel}>Наявність:</span>
+                <span className={`spec-value ${(selectedProduct.quantity || 0) > 0 ? styles.stockPositive : styles.stockNegative}`}>
+                  {(selectedProduct.quantity || 0) > 0 ? `${selectedProduct.quantity} шт.` : 'Немає в наявності'}
+                </span>
+              </div>
+              <div className={styles.specItem} style={{ flexDirection: 'column', marginTop: '15px' }}>
+                <span className={styles.specLabel} style={{ marginBottom: '8px' }}>Опис:</span>
+                <span className={styles.descriptionText} style={{ whiteSpace: 'pre-wrap' }}>
+                  {selectedProduct.long_description || selectedProduct.description || "Інформація про товар уточнюється."}
+                </span>
+              </div>
+            </div>
+
+            <div className={styles.modalFooterActions}>
+              {(selectedProduct.quantity || 0) > 0 && (
+                <button className={styles.modalBuyBtn} onClick={() => { addToCart(selectedProduct); setSelectedProduct(null); }}>
+                  Додати до кошика
+                </button>
+              )}
+              <button className={styles.modalCloseBtn} onClick={() => setSelectedProduct(null)}>
+                Закрити
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

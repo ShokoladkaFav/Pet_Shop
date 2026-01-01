@@ -29,6 +29,7 @@ interface Product {
   category: string;
   price: string | number;
   description: string;
+  long_description: string; // Нове поле
   supplier_id: string | number;
   image_url: string;   
   quantity?: string | number;   
@@ -82,6 +83,7 @@ const AdminPanel: React.FC = () => {
     category: "cats", 
     price: "",
     description: "",
+    long_description: "", // Нове поле
     supplier_id: "",
     image_url: "",
     quantity: "", 
@@ -293,10 +295,14 @@ const AdminPanel: React.FC = () => {
         headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
         body: JSON.stringify({ action: "delete", supplier_id: id })
       });
-      const result = await res.json();
+      
+      const text = await res.text();
+      let result;
+      try { result = JSON.parse(text); } catch (e) { throw new Error("Сервер повернув помилку (не JSON)"); }
+
       if (result.status === "success") fetchSuppliers();
       else alert("Помилка: " + result.message);
-    } catch (e) { alert("Помилка з'єднання"); }
+    } catch (e: any) { alert("❌ Помилка з'єднання: " + e.message); }
   };
 
   const handleSaveSupplier = async (e: React.FormEvent) => {
@@ -325,6 +331,7 @@ const AdminPanel: React.FC = () => {
       category: "cats", 
       price: "", 
       description: "", 
+      long_description: "",
       supplier_id: "", 
       image_url: "", 
       quantity: "", 
@@ -341,6 +348,7 @@ const AdminPanel: React.FC = () => {
       category: product.category,
       price: product.price,
       description: product.description,
+      long_description: product.long_description || "",
       supplier_id: product.supplier_id,
       image_url: product.image_url || "",
       quantity: product.quantity || "",
@@ -376,15 +384,35 @@ const AdminPanel: React.FC = () => {
   const handleDeleteProduct = async (id: number) => {
     if (!window.confirm("Ви дійсно хочете видалити цей товар?")) return;
     try {
+        const token = getToken();
         const response = await fetch("http://localhost/zoo-api/delete_product.php", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": token ? `Bearer ${token}` : "" 
+            },
             body: JSON.stringify({ product_id: id })
         });
-        const result = await response.json();
-        if (result.status === "success") { alert("🗑️ Товар видалено."); fetchProducts(); }
-        else alert("❌ Помилка: " + result.message);
-    } catch (error) { alert("❌ Помилка з'єднання."); }
+
+        const text = await response.text();
+        let result;
+        try {
+            result = JSON.parse(text);
+        } catch (e) {
+            console.error("Non-JSON response:", text);
+            throw new Error("Невірна відповідь сервера (не JSON).");
+        }
+
+        if (result.status === "success") { 
+            alert("🗑️ Товар видалено."); 
+            fetchProducts(); 
+        } else {
+            alert("❌ Помилка: " + (result.message || "Невідома помилка"));
+        }
+    } catch (error: any) { 
+        console.error("Delete product error:", error);
+        alert("❌ Помилка: " + error.message); 
+    }
   };
 
   const openPasswordModal = (emp: Employee) => {
@@ -413,15 +441,29 @@ const AdminPanel: React.FC = () => {
   const handleDeleteEmployee = async (id: number) => {
     if (!window.confirm("Ви дійсно хочете видалити цього працівника?")) return;
     try {
+        const token = getToken();
         const response = await fetch("http://localhost/zoo-api/delete_employee.php", {
             method: "POST",
-            headers: { "Content-Type": "application/json", "Authorization": `Bearer ${getToken()}` },
+            headers: { 
+                "Content-Type": "application/json", 
+                "Authorization": token ? `Bearer ${token}` : "" 
+            },
             body: JSON.stringify({ employee_id: id })
         });
-        const result = await response.json();
-        if (result.status === "success") { alert("✅ Працівника видалено."); fetchEmployees(); }
-        else alert("❌ Помилка: " + result.message);
-    } catch (error) { alert("❌ Помилка з'єднання."); }
+
+        const text = await response.text();
+        let result;
+        try { result = JSON.parse(text); } catch (e) { throw new Error("Сервер повернув невірний формат даних."); }
+
+        if (result.status === "success") { 
+            alert("✅ Працівника видалено."); 
+            fetchEmployees(); 
+        } else {
+            alert("❌ Помилка: " + result.message);
+        }
+    } catch (error: any) { 
+        alert("❌ Помилка з'єднання: " + error.message); 
+    }
   };
 
   return (
@@ -667,7 +709,7 @@ const AdminPanel: React.FC = () => {
 
       {showProductModal && (
         <div className="modal-overlay-admin">
-          <div className="modal-admin" style={{maxWidth: "550px"}}>
+          <div className="modal-admin" style={{maxWidth: "650px"}}>
              <h3>{isEditingProduct ? "✏️ Редагувати товар" : "📦 Додати товар"}</h3>
              <form onSubmit={handleProductSubmit}>
                   <div className="form-group"><label>Назва:</label><input type="text" required value={newProduct.name} onChange={e => setNewProduct({...newProduct, name: e.target.value})} /></div>
@@ -682,7 +724,8 @@ const AdminPanel: React.FC = () => {
                     </select>
                   </div>
                   <div className="form-group"><label>URL Зображення:</label><input type="text" value={newProduct.image_url} onChange={e => setNewProduct({...newProduct, image_url: e.target.value})} placeholder="https://..." /></div>
-                  <div className="form-group"><label>Опис:</label><textarea value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} placeholder="Короткий опис товару..." /></div>
+                  <div className="form-group"><label>Короткий опис (для карток):</label><textarea value={newProduct.description} onChange={e => setNewProduct({...newProduct, description: e.target.value})} placeholder="Короткий опис товару..." /></div>
+                  <div className="form-group"><label>Детальний опис (для вікна "Подробніше"):</label><textarea style={{minHeight: "150px"}} value={newProduct.long_description} onChange={e => setNewProduct({...newProduct, long_description: e.target.value})} placeholder="Введіть повну характеристику товару, склад, переваги тощо..." /></div>
                   <div className="form-row">
                       <div className="form-group"><label>Кількість:</label><input type="number" required value={newProduct.quantity} onChange={e => setNewProduct({...newProduct, quantity: e.target.value})} /></div>
                       <div className="form-group"><label>Склад:</label><input type="text" required value={newProduct.location} onChange={e => setNewProduct({...newProduct, location: e.target.value})} /></div>
