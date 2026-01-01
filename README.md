@@ -42,20 +42,20 @@
 
 ## 📸 Інтерфейс додатку
 
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/1.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/2.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/3.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/4.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/5.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/6.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/7.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/8.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/9.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/10.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/11.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/12.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/13.png" width="15%" alt=""/>
-<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/14.png" width="15%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/1.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/2.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/3.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/4.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/5.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/6.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/7.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/8.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/9.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/10.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/11.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/12.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/13.png" width="100%" alt=""/>
+<img src="https://github.com/ShokoladkaFav/Pet_Shop/blob/main/public/assets/14.png" width="100%" alt=""/>
 
 ### 📱 Користувацька частина
 > Естетичний дизайн з використанням м'яких градієнтів та інтерактивних елементів, що створюють відчуття преміального сервісу.
